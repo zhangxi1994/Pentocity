@@ -279,7 +279,7 @@ public class Player implements pentos.sim.Player {
 		}
 		while (iter.hasNext()) {
 			Cell temp = iter.next();
-			hasBuildingCell[temp.i + currentRow.getStart() - 1][currentRow.getCurrentLocation() - temp.j + 1] = true;
+			//hasBuildingCell[temp.i + currentRow.getStart() - 1][currentRow.getCurrentLocation() - temp.j + 1] = true;
 			rowMin = (temp.i < rowMin) ? temp.i : rowMin;
 			rowMax = (temp.i > rowMax) ? temp.i : rowMax;
 			colMin = (temp.j < colMin) ? temp.j : colMin;
@@ -288,7 +288,7 @@ public class Player implements pentos.sim.Player {
 		iter = request.rotations()[rotation].iterator();
 		while (iter.hasNext()) {
 			Cell temp = iter.next();
-			hasBuildingCell[temp.i + currentRow.getStart() - 1][currentRow.getCurrentLocation() - colMin + temp.j] = true;
+			hasBuildingCell[temp.i + currentRow.getStart() - 1][currentRow.getCurrentLocation() - colMax + temp.j] = true;
 		}
 		for (int i = currentRow.getStart(); i < currentRow.getEnd()
 				&& currentRow.getCurrentLocation() != land.side - 1; i++) {
@@ -315,13 +315,21 @@ public class Player implements pentos.sim.Player {
 		}
 		//add cells to water or park make it at least 4
 		if(paddType==1&&water.size()<4){
-			for(int i = currentRow.getStart();i<currentRow.getEnd();i++)
-				water.add(new Cell(1,currentRow.getCurrentLocation() - colMax + colMin
-						+ 1));
+			for(int i = currentRow.getStart();i<currentRow.getEnd();i++){
+				if(currentRow.getCurrentLocation() - colMax + colMin
+						+ 1<50&&currentRow.getCurrentLocation() - colMax + colMin
+						+ 1>0){
+					water.add(new Cell(i,currentRow.getCurrentLocation() - colMax + colMin+ 1));
+				}		
+			}
+				
 		}else if(paddType==2&&park.size()<4){
 			for(int i = currentRow.getStart();i<currentRow.getEnd();i++)
-				park.add(new Cell(1,currentRow.getCurrentLocation() - colMax + colMin
-						+ 1));
+				if(currentRow.getCurrentLocation() - colMax + colMin
+						+ 1<50&&currentRow.getCurrentLocation() - colMax + colMin
+						+ 1>0){
+					park.add(new Cell(i,currentRow.getCurrentLocation() - colMax + colMin+ 1));
+				}	
 		}
 		//padd road
 		if(currentRow.getRoadLocation()>0 && currentRow.getRoadLocation()<50) {
@@ -330,8 +338,9 @@ public class Player implements pentos.sim.Player {
 				water.add(new Cell(currentRow.getRoadLocation(),i));
 
 		}
-		
-		return new Move(true,request,new Cell(currentRow.getEnd(),currentRow.getCurrentLocation())
+		int width = colMax - colMin+1;
+		currentRow.setCurrentLocation(currentRow.getCurrentLocation()-width);
+		return new Move(true,request,new Cell(currentRow.getStart(),currentRow.getCurrentLocation()-width)
 				,rotation,road,water,park);
 	}
 
