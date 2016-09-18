@@ -20,10 +20,10 @@ public class Player implements pentos.sim.Player {
 	private static int factoryRowSizeShift = 2;
 	private static int[] numResidenceRowsPerSize = { 12, 6 };
 	private static int residenceRowSizeShift = 2;
-
-	private HashMap<Integer, Set<Row>> factoryRows;
-	private HashMap<Integer, Set<Row>> residenceRows;
-
+	
+	private HashMap<Integer, Set<Row>> factoryRows = new HashMap<Integer, Set<Row>>();
+	private HashMap<Integer, Set<Row>> residenceRows = new HashMap<Integer, Set<Row>>();
+	
 	@Override
 	public void init() {
 		int currentRow = 0;
@@ -41,7 +41,7 @@ public class Player implements pentos.sim.Player {
 					factoryRows.put(i + factoryRowSizeShift, new HashSet<Row>());
 				}
 				factoryRows.get(i + factoryRowSizeShift).add(row);
-				
+
 				if (rowNumber % 2 == 0) {
 					currentRow = currentRow + i + factoryRowSizeShift;
 				} else {
@@ -77,23 +77,95 @@ public class Player implements pentos.sim.Player {
 	@Override
 	public Move play(Building request, Land land) {
 
-		if (request.getType() == Type.FACTORY) {
-			int[] factoryDimensions = getFactoryDimensions(request);
-
+		if(request.getType() == Type.FACTORY){
+			int[] factoryDimensions = getBuildingDimensions(request);
+			
 			Row bestRow = null;
-
-			for (Row row : factoryRows.get(factoryDimensions[0])) {
-
+			int minLength = -1;
+			boolean rotate = false;
+			
+			//This is checking for the best row if you use the first dimension of the factory
+			System.out.println("Dimensions: " + factoryDimensions[0] +'\t'+factoryDimensions[1]);
+			for(Row row : factoryRows.get(factoryDimensions[0])){
+				if(!factoryRowExtendable(row, land, request.rotations()[0])){
+					continue;
+				}
+				else{
+					if(bestRow == null){
+						bestRow = row;
+						minLength = bestRow.getCurrentLocation() + factoryDimensions[1];
+						rotate = false;
+					}
+					else{
+						if(row.getCurrentLocation() + factoryDimensions[1] < minLength){
+							bestRow = row;
+							minLength = bestRow.getCurrentLocation() + factoryDimensions[1];
+							rotate = false;
+						}
+					}
+				}
+			}
+			//This is checking for the best row if you use the second dimension of the factory
+			if(factoryDimensions[0]!=factoryDimensions[1]){ //This makes sure that Dim2 isn't the same as Dim1
+				for(Row row : factoryRows.get(factoryDimensions[1])){
+					if(!factoryRowExtendable(row, land, request.rotations()[1])){
+						continue;
+					}
+					else{
+						if(bestRow == null){
+							bestRow = row;
+							minLength = bestRow.getCurrentLocation() + factoryDimensions[0];
+							rotate = true;
+						}
+						else{
+							if(row.getCurrentLocation() + factoryDimensions[0] < minLength){
+								bestRow = row;
+								minLength = bestRow.getCurrentLocation() + factoryDimensions[0];
+								rotate = true;
+							}
+						}
+					}
+				}
 			}
 
-		} else {
+			//Suppose no best row was found, you should reject the request
+			if(bestRow==null){
+				System.out.println("Rejecting because no bestRow was found.");
+				return new Move(false);
+			}
+			
+			
+			boolean accept = true;
+			Cell location = new Cell(bestRow.getStart(), bestRow.getCurrentLocation());
+			int rotation = (rotate) ? 1 : 0;
+			
+			Set<Cell> road = new HashSet<Cell>();
+			if(bestRow.getStart() == 0){
+				//This means bestRow is on the top edge and needs no roads
+				//Do nothing
+			}
+			else if(bestRow.getEnd() == 50){
+				//This means bestRow is on the bottom edge and needs no roads
+				//Do nothing
+			}
+			//ToDo: Figure out how to make the roads
+			
+		
+			Set<Cell> water = new HashSet<Cell>(); //This stays empty. No water
+			Set<Cell> park = new HashSet<Cell>(); //This stays empty. No parks
+			
+			//Update currentLocation! 
+			bestRow.setCurrentLocation((rotate) ? factoryDimensions[0] : factoryDimensions[1]);
+			return new Move(accept, request, location, rotation, road, water, park);
+			
+		}
+		else{
 			throw new RuntimeException("Unhandled Building request.");
 		}
-		return null;
 	}
 
-	public int[] getFactoryDimensions(Building factory) {
-		if (factory.getType() != Type.FACTORY) {
+	public int[] getBuildingDimensions(Building factory){
+		if(factory.getType() != Type.FACTORY){
 			throw new RuntimeException("Incorrect building type inputted.");
 		}
 
@@ -108,26 +180,23 @@ public class Player implements pentos.sim.Player {
 			colMin = (temp.j < colMin) ? temp.j : colMin;
 			colMax = (temp.j > colMax) ? temp.j : colMax;
 		}
-
-		int height = rowMax - rowMin;
-		int width = colMax - colMin;
-
-		return new int[] { height, width };
+		
+		int height = rowMax - rowMin + 1;
+		int width = colMax - colMin + 1;
+		
+		return new int[]{height, width};
 	}
-
-	public boolean factoryRowExtendable(Row row, int extendBy, Land land, Building factory) {
-		if (factory.getType() != Type.FACTORY) {
+	
+	public boolean factoryRowExtendable(Row row, Land land, Building factory){
+		if(factory.getType() != Type.FACTORY){
 			throw new RuntimeException("Incorrect building type inputted.");
 		}
+		
+		int topCell = row.getStart();
+		int leftCell = row.getCurrentLocation();
+		
+		return land.buildable(factory, new Cell(topCell,leftCell));
 
-		for (int i = 0; i < row.size(); i++) {
-			for (int j = row.getCurrentLocation(); j < row.getCurrentLocation() + extendBy; j++) {
-				if (!land.buildable(factory, new Cell(i, j))) {
-					return false;
-				}
-			}
-		}
-		return true;
 	}
 
 	public Move padding(Building request, int rotation, Land land, Row currentRow) {
