@@ -22,11 +22,14 @@ public class Player implements pentos.sim.Player {
 	private HashMap<Integer, Set<Row>> factoryRows;
 	private HashMap<Integer, Set<Row>> residenceRows;
 	
+	private enum ResidenceType {LINE, L_FACE, R_FACE, INV_L, L, R_BLK, L_BLK, INV_LIGHTNING,
+								LIGHTNING, T, U, RANGLE, STEPS, PLUS, L_TOTEM, R_TOTEM, INV_Z, Z};
+	
 	@Override
 	public void init() {
 		int currentRow = 0;
 		for (int i = 0; i < numFactoryRowsPerSize.length; ++i) {
-			for (int j = 0; j < numFactoryRowsPerSize[i]; j++) {
+			for (int j = 0; j < numFactoryRowsPerSize[i]; ++j) {
 				Row row = new Row(currentRow, currentRow + i + factoryRowSizeShift);
 				if (! factoryRows.containsKey(i + factoryRowSizeShift)) {
 					factoryRows.put(i + factoryRowSizeShift, new HashSet<Row>());
@@ -36,7 +39,7 @@ public class Player implements pentos.sim.Player {
 		}
 		
 		for (int i = 0; i < numResidenceRowsPerSize.length; ++i) {
-			for (int j = 0; j < numResidenceRowsPerSize[i]; j++) {
+			for (int j = 0; j < numResidenceRowsPerSize[i]; ++j) {
 				Row row = new Row(currentRow, currentRow + i + residenceRowSizeShift);
 				if (! residenceRows.containsKey(i + residenceRowSizeShift)) {
 					residenceRows.put(i + residenceRowSizeShift, new HashSet<Row>());
@@ -50,7 +53,7 @@ public class Player implements pentos.sim.Player {
 	public Move play(Building request, Land land) {
 		
 		if(request.getType() == Type.FACTORY){
-			int[] factoryDimensions = getFactoryDimensions(request);
+			int[] factoryDimensions = getBuildingDimensions(request);
 			
 			Row bestRow = null;
 			
@@ -61,12 +64,83 @@ public class Player implements pentos.sim.Player {
 			
 		}
 		else{
-			throw new RuntimeException("Unhandled Building request.");
+			// Received request for residence
+			
+			// TODO: (future) Figure out building shape
+			
+			/* Use rotation that has least number of cells in the leftmost row
+			 * If one of the dimensions is size 2, prefer that as the height
+			 */
+			int rotation = 0;
+			int minCellsOnLeft = Integer.MAX_VALUE;
+			boolean is2 = false;
+			Building[] rotations = request.rotations();
+			for (int i = 0; i < rotations.length; ++i) {
+				int[] residenceDimensions = getBuildingDimensions(rotations[i]);
+				if(residenceDimensions[1] == 2) {
+					// Size 2
+					int leftCells = countCellsOnLeft(rotations[i]);
+					if (is2) {
+						if (leftCells < minCellsOnLeft) {
+							minCellsOnLeft = leftCells;
+							rotation = i;
+						}
+					} else {
+						is2 = true;
+						rotation = i;
+						minCellsOnLeft = leftCells;
+					}
+				} else {
+					// Size 3 rotation
+					if (is2) {
+						// Forget this rotation
+					} else {
+						int leftCells = countCellsOnLeft(rotations[i]);
+						if (leftCells < minCellsOnLeft) {
+							minCellsOnLeft = leftCells;
+							rotation = i;
+						}
+					}
+				}
+			}
+			Set<Row> possibleRows;
+			if (is2) {
+				possibleRows = residenceRows.get(2);
+			} else {
+				possibleRows = residenceRows.get(3);
+			}
+			
+			/*
+			 *  Now we have the rotation we want, and the set of rows we can put it in
+			 */
+			
+			Building rotatedRequest = request.rotations()[rotation];
+			
+			Row bestRow = null;
+			int bestLocation = Integer.MIN_VALUE;
+			for (Row row : possibleRows) {
+				if (residenceRowExtendable(land, row, rotatedRequest) && row.getCurrentLocation() > bestLocation) {
+					bestLocation = row.getCurrentLocation();
+					bestRow = row;
+				}
+			}
+			
+			// If it is still null, it means we didn't find the row to place it
+			if (bestRow == null) {
+				return new Move(false);
+			}
+			
+			// TODO: (Future) align building so that padding is on opposite side of road
+			
+			// All decided, now generate the complete
+			Move move = padding(request, rotation, land, bestRow);
+			return move;
 		}
+		
 		return null;
 	}
 	
-	public int[] getFactoryDimensions(Building factory){
+	public int[] getBuildingDimensions(Building factory){
 		if(factory.getType() != Type.FACTORY){
 			throw new RuntimeException("Incorrect building type inputted.");
 		}
@@ -103,4 +177,39 @@ public class Player implements pentos.sim.Player {
 		return true;
 	}
 
+	private static boolean residenceRowExtendable(Land land, Row row, Building residence) {
+		if (residence.getType() != Type.RESIDENCE) {
+			throw new RuntimeException("Incorrect building type inputted.");
+		}
+		
+		int maxWidth = Integer.MIN_VALUE;
+		for (Cell cell : residence) {
+			if (cell.i > maxWidth) {
+				maxWidth = cell.i;
+			}
+		}
+		
+		// Check if you can build to the left starting from currentLocation
+		if (! land.buildable(residence, new Cell(row.getStart(), row.getCurrentLocation() - maxWidth))) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	private static int countCellsOnLeft(Building building) {
+		int minRow = Integer.MAX_VALUE;
+		int numCellsAtMin = 0;
+		Iterator<Cell> iterator = building.iterator();
+		while(iterator.hasNext()) {
+			Cell cell = iterator.next();
+			if (cell.i < minRow) {
+				minRow = cell.i;
+				numCellsAtMin = 1;
+			} else if (cell.i == minRow) {
+				numCellsAtMin++;
+			}
+		}
+		return numCellsAtMin;
+	}
 }

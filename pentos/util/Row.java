@@ -26,5 +26,13 @@ public class Row {
 	public int getCurrentLocation() {
 		return currentLocation;
 	}
+	
+	public int getStart() {
+		return start;
+	}
+	
+	public int getEnd() {
+		return end;
+	}
 
 }
