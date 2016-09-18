@@ -118,7 +118,7 @@ class Simulator {
 	timer.start();
 	final Class <Player> player_class = g_class;
 	final Class <Sequencer> sequencer_class = s_class;
-	Player player;
+	final Player player;
 	Sequencer generator;
 	try {
 	    player = timer.call(new Callable <Player> () {
@@ -161,7 +161,7 @@ class Simulator {
 	// initialize score and termination
 	// initialize land
 	int land_side = 50;
-	Land land = new Land(land_side);
+	final Land land = new Land(land_side);
 	if (log)
 	    System.err.println("Initializing player...");
 	player.init();
@@ -172,7 +172,7 @@ class Simulator {
 	    System.err.println("Construction begins ...");
 	do {
 	    // get next build request
-	    Building request = generator.next();
+	    final Building request = generator.next();
 	    // call the play method of player
 	    long timeout_ms = 0;
 	    if (cpu_time_ms > 0) {
