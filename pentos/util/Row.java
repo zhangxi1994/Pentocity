@@ -8,7 +8,10 @@ import pentos.sim.Building;
 public class Row {
 	
 	private int start, end;
+
+
 	private int currentLocation;
+
 
 	private Set<Building> buildings;
 	
@@ -25,6 +28,18 @@ public class Row {
 	
 	public int getCurrentLocation() {
 		return currentLocation;
+	}
+	
+	public void setCurrentLocation(int currentLocation) {
+		this.currentLocation = currentLocation;
+	}
+	
+	public int getStart() {
+		return start;
+	}
+
+	public int getEnd() {
+		return end;
 	}
 
 }
