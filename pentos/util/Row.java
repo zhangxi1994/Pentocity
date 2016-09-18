@@ -24,6 +24,14 @@ public class Row {
 		this.roadLocation = roadLocation;
 	}
 	
+	public Row(int start, int end,int roadLocation, int currentLocation) {
+		this.start = start;
+		this.end = end;
+		this.currentLocation = currentLocation;
+		this.buildings = new HashSet<Building>();
+		this.roadLocation = roadLocation;
+	}
+	
 	public int size() {
 		return this.end - this.start;
 	}

@@ -62,7 +62,7 @@ public class Player implements pentos.sim.Player {
 				} else {
 					roadLocation = currentRow + i + residenceRowSizeShift;
 				}
-				Row row = new Row(currentRow, currentRow + i + residenceRowSizeShift,roadLocation);
+				Row row = new Row(currentRow, currentRow + i + residenceRowSizeShift, roadLocation, 49);
 				if (!residenceRows.containsKey(i + residenceRowSizeShift)) {
 					residenceRows.put(i + residenceRowSizeShift, new HashSet<Row>());
 				}
@@ -88,7 +88,6 @@ public class Player implements pentos.sim.Player {
 			boolean rotate = false;
 			
 			//This is checking for the best row if you use the first dimension of the factory
-			System.out.println("Dimensions: " + factoryDimensions[0] +'\t'+factoryDimensions[1]);
 			for(Row row : factoryRows.get(factoryDimensions[0])){
 				if(!factoryRowExtendable(row, land, request.rotations()[0])){
 					continue;
@@ -238,10 +237,6 @@ public class Player implements pentos.sim.Player {
 	}
 
 	public int[] getBuildingDimensions(Building factory){
-		if(factory.getType() != Type.FACTORY){
-			throw new RuntimeException("Incorrect building type inputted.");
-		}
-
 		int rowMin = Integer.MAX_VALUE, rowMax = Integer.MIN_VALUE, colMin = Integer.MAX_VALUE,
 				colMax = Integer.MIN_VALUE;
 		Iterator<Cell> iter = factory.iterator();
@@ -279,7 +274,9 @@ public class Player implements pentos.sim.Player {
 		int paddType = 1;
 		// Map<Integer,Map<Integer,Cell>> cellMap = new HashMap<>();
 		boolean[][] hasBuildingCell = new boolean[50][50];
-		Arrays.fill(hasBuildingCell, false);
+		for (boolean[] array : hasBuildingCell) {
+			Arrays.fill(array, false);
+		}
 		while (iter.hasNext()) {
 			Cell temp = iter.next();
 			hasBuildingCell[temp.i + currentRow.getStart() - 1][currentRow.getCurrentLocation() - temp.j + 1] = true;
@@ -327,9 +324,12 @@ public class Player implements pentos.sim.Player {
 						+ 1));
 		}
 		//padd road
-		for(int i = currentRow.getCurrentLocation();i>currentRow.getCurrentLocation() - colMax + colMin
-				+ 1;i--)
-			water.add(new Cell(currentRow.getRoadLocation(),i));
+		if(currentRow.getRoadLocation()>0 && currentRow.getRoadLocation()<50) {
+			for(int i = currentRow.getCurrentLocation();i>currentRow.getCurrentLocation() - colMax + colMin
+					+ 1;i--)
+				water.add(new Cell(currentRow.getRoadLocation(),i));
+
+		}
 		
 		return new Move(true,request,new Cell(currentRow.getEnd(),currentRow.getCurrentLocation())
 				,rotation,road,water,park);
@@ -354,7 +354,7 @@ public class Player implements pentos.sim.Player {
 		}
 		
 		// Check if you can build to the left starting from currentLocation
-		if (! land.buildable(residence, new Cell(row.getStart(), row.getCurrentLocation() - maxWidth))) {
+		if (land.buildable(residence, new Cell(row.getStart(), row.getCurrentLocation() - maxWidth))) {
 			return true;
 		} else {
 			return false;
