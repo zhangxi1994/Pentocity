@@ -288,6 +288,11 @@ public class Player implements pentos.sim.Player {
 			colMin = (temp.j < colMin) ? temp.j : colMin;
 			colMax = (temp.j > colMax) ? temp.j : colMax;
 		}
+		iter = request.rotations()[rotation].iterator();
+		while (iter.hasNext()) {
+			Cell temp = iter.next();
+			hasBuildingCell[temp.i + currentRow.getStart() - 1][currentRow.getCurrentLocation() - colMin + temp.j] = true;
+		}
 		for (int i = currentRow.getStart(); i < currentRow.getEnd()
 				&& currentRow.getCurrentLocation() != land.side - 1; i++) {
 			if (land.isField(i, currentRow.getCurrentLocation() + 1))
