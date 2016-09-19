@@ -85,6 +85,8 @@ public class Player implements pentos.sim.Player {
 		if(request.getType() == Type.FACTORY){
 			int[] factoryDimensions = getBuildingDimensions(request);
 			
+			System.out.println("Request: " + factoryDimensions[0] + "\t" + factoryDimensions[1]);
+			
 			Row bestRow = null;
 			int minLength = -1;
 			boolean rotate = false;
@@ -152,14 +154,26 @@ public class Player implements pentos.sim.Player {
 				//This means bestRow is on the bottom edge and needs no roads
 				//Do nothing
 			}
-			//ToDo: Figure out how to make the roads
+			else{
+				int extension = (rotate) ? factoryDimensions[0] : factoryDimensions[1];
+				for(int i=0; i<extension; i++){
+					if(!land.unoccupied(bestRow.getRoadLocation(), bestRow.getCurrentLocation() + i)){
+						//This means it should already be road, so don't do anything. There might be a logic issue here.
+						//return new Move(false);
+						continue;
+					}
+					else{
+						road.add(new Cell(bestRow.getRoadLocation(), bestRow.getCurrentLocation() + i));
+					}
+				}
+			}
 			
 		
 			Set<Cell> water = new HashSet<Cell>(); //This stays empty. No water
 			Set<Cell> park = new HashSet<Cell>(); //This stays empty. No parks
 			
 			//Update currentLocation! 
-			bestRow.setCurrentLocation((rotate) ? factoryDimensions[0] : factoryDimensions[1]);
+			bestRow.setCurrentLocation((rotate) ? bestRow.getCurrentLocation() + factoryDimensions[0] : bestRow.getCurrentLocation() + factoryDimensions[1]);
 			return new Move(accept, request, location, rotation, road, water, park);
 			
 		}
