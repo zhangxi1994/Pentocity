@@ -12,13 +12,12 @@ import pentos.sim.Building.Type;
 import pentos.sim.Cell;
 import pentos.sim.Land;
 import pentos.sim.Move;
-import pentos.util.Row;
 
 public class Player implements pentos.sim.Player {
 
 	private static int[] numFactoryRowsPerSize = { 5, 4, 3, 2 };
 	private static int factoryRowSizeShift = 2;
-	private static int[] numResidenceRowsPerSize = { 12, 6 };
+	private static int[] numResidenceRowsPerSize = { 14, 4 };
 	private static int residenceRowSizeShift = 2;
 	
 	private HashMap<Integer, Set<Row>> factoryRows = new HashMap<Integer, Set<Row>>();
@@ -400,6 +399,11 @@ public class Player implements pentos.sim.Player {
 			if (cell.j > maxWidth) {
 				maxWidth = cell.j;
 			}
+		}
+		
+		// If row has reached the end of the board, can't build here
+		if (row.getCurrentLocation() - maxWidth < 0) {
+			
 		}
 		
 		// Check if you can build to the left starting from currentLocation

@@ -1,4 +1,4 @@
-package pentos.util;
+package pentos.g6;
 
 import java.util.HashSet;
 import java.util.Set;
