@@ -38,7 +38,7 @@ class Simulator {
 			throw new IllegalArgumentException("Missing sequencer name");
 		    sequencer = args[++a];
 		}
-		else if (args[a].equals("--gui-fps")) {
+		else if (args[a].equals("--fps")) {
 		    if (++a == args.length)
 			throw new IllegalArgumentException("Missing GUI FPS");
 		    double gui_fps = Double.parseDouble(args[a]);
@@ -118,7 +118,7 @@ class Simulator {
 	timer.start();
 	final Class <Player> player_class = g_class;
 	final Class <Sequencer> sequencer_class = s_class;
-	final Player player;
+	Player player;
 	Sequencer generator;
 	try {
 	    player = timer.call(new Callable <Player> () {
@@ -161,7 +161,7 @@ class Simulator {
 	// initialize score and termination
 	// initialize land
 	int land_side = 50;
-	final Land land = new Land(land_side);
+	Land land = new Land(land_side);
 	if (log)
 	    System.err.println("Initializing player...");
 	player.init();
@@ -172,7 +172,7 @@ class Simulator {
 	    System.err.println("Construction begins ...");
 	do {
 	    // get next build request
-	    final Building request = generator.next();
+	    Building request = generator.next();
 	    // call the play method of player
 	    long timeout_ms = 0;
 	    if (cpu_time_ms > 0) {
