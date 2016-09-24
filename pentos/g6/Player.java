@@ -17,8 +17,8 @@ public class Player implements pentos.sim.Player {
 
 	private static int[] numFactoryRowsPerSize = { 5, 4, 3, 2 };
 	private static int factoryRowSizeShift = 2;
-	private static int[] numResidenceRowsPerSize = { 14, 4 };
-	private static int residenceRowSizeShift = 2;
+	private static int[] numResidenceRowsPerSize = { 8, 3 };
+	private static int residenceRowSizeShift = 3;
 	
 	private HashMap<Integer, Set<Row>> factoryRows = new HashMap<Integer, Set<Row>>();
 	private HashMap<Integer, Set<Row>> residenceRows = new HashMap<Integer, Set<Row>>();
@@ -28,6 +28,12 @@ public class Player implements pentos.sim.Player {
 	
 	@Override
 	public void init() {
+		initializeFactoryRows();
+		initializeResidenceRows();
+	}
+
+	private void initializeFactoryRows() {
+		// Initializing factory rows
 		int currentRow = 0;
 		int rowNumber= 0;
 		for (int i = 0; i < numFactoryRowsPerSize.length; ++i) {
@@ -52,30 +58,36 @@ public class Player implements pentos.sim.Player {
 				rowNumber++;
 			}
 		}
-		currentRow = 0 ;
-		rowNumber = 0;
+	}
+
+	private void initializeResidenceRows() {
+		// Initializing residence rows, accounting for both parks and roads in the middle
+		int currentRow = 0;
+		int rowNumber= 0;
 		for (int i = 0; i < numResidenceRowsPerSize.length; ++i) {
 			for (int j = 0; j < numResidenceRowsPerSize[i]; j++) {
-				int roadLocation;
+				int roadLocation, parkLocation;
 				if(rowNumber % 2 == 0) {
 					roadLocation = currentRow - 1;
+					parkLocation = currentRow + i + residenceRowSizeShift;
 				} else {
 					roadLocation = currentRow + i + residenceRowSizeShift;
+					parkLocation = currentRow - 1;
 				}
-				Row row = new Row(currentRow, currentRow + i + residenceRowSizeShift, roadLocation, 49);
+				Row row = new Row(currentRow, 
+									currentRow + i + residenceRowSizeShift, 
+									roadLocation, 
+									parkLocation,
+									49);
 				if (!residenceRows.containsKey(i + residenceRowSizeShift)) {
 					residenceRows.put(i + residenceRowSizeShift, new HashSet<Row>());
 				}
 				residenceRows.get(i + residenceRowSizeShift).add(row);
 				
-				if (rowNumber % 2 == 0) {
-					currentRow = currentRow + i + residenceRowSizeShift;
-				} else {
-					currentRow = currentRow + i + residenceRowSizeShift + 1;
-				}
+				currentRow = currentRow + i + residenceRowSizeShift + 1;
 				rowNumber++;
 			}
-		}
+		}		
 	}
 
 	@Override
@@ -175,83 +187,83 @@ public class Player implements pentos.sim.Player {
 			bestRow.setCurrentLocation((rotate) ? bestRow.getCurrentLocation() + factoryDimensions[0] : bestRow.getCurrentLocation() + factoryDimensions[1]);
 			return new Move(accept, request, location, rotation, road, water, park);
 			
-		}
-		else{
+		} else {
 			// Received request for residence
-			
-			// TODO: (future) Figure out building shape
-			
-			/* Use rotation that has least number of cells in the leftmost row
-			 * If one of the dimensions is size 2, prefer that as the height
-			 */
-			int rotation = 0;
-			int minCellsOnLeft = Integer.MAX_VALUE;
-			boolean is2 = false;
-			Building[] rotations = request.rotations();
-			for (int i = 0; i < rotations.length; ++i) {
-				int[] residenceDimensions = getBuildingDimensions(rotations[i]);
-				if(residenceDimensions[0] <= 2) {
-					// Size 2
-					int leftCells = countCellsOnLeft(rotations[i]);
-					if (is2) {
-						if (leftCells < minCellsOnLeft) {
-							minCellsOnLeft = leftCells;
-							rotation = i;
-						}
-					} else {
-						is2 = true;
-						rotation = i;
+			return generateResidenceMove(request, land);
+		}
+	}
+
+	private Move generateResidenceMove(Building request, Land land) {
+		/* Use rotation that has least number of cells in the leftmost row for now
+		 * If one of the dimensions is size 4 or more, prefer that as the height
+		 */
+		int rotation = 0;
+		int minCellsOnLeft = Integer.MAX_VALUE;
+		boolean is4 = false;
+		Building[] rotations = request.rotations();
+		for (int i = 0; i < rotations.length; ++i) {
+			int[] residenceDimensions = getBuildingDimensions(rotations[i]);
+			if(residenceDimensions[0] >= 4) {
+				// Size 4 or more
+				int leftCells = countCellsOnLeft(rotations[i]);
+				if (is4) {
+					if (leftCells < minCellsOnLeft) {
 						minCellsOnLeft = leftCells;
+						rotation = i;
 					}
 				} else {
-					// Size 3 or more
-					if (is2) {
-						// Forget this rotation
-					} else {
-						int leftCells = countCellsOnLeft(rotations[i]);
-						if (leftCells < minCellsOnLeft) {
-							minCellsOnLeft = leftCells;
-							rotation = i;
-						}
+					is4 = true;
+					rotation = i;
+					minCellsOnLeft = leftCells;
+				}
+			} else {
+				// Size 3 or less
+				if (is4) {
+					// Forget this rotation
+				} else {
+					int leftCells = countCellsOnLeft(rotations[i]);
+					if (leftCells < minCellsOnLeft) {
+						minCellsOnLeft = leftCells;
+						rotation = i;
 					}
 				}
 			}
-			Set<Row> possibleRows;
-			if (is2) {
-				possibleRows = residenceRows.get(2);
-			} else {
-				possibleRows = residenceRows.get(3);
-			}
-			
-			/*
-			 *  Now we have the rotation we want, and the set of rows we can put it in
-			 */
-			
-			Building rotatedRequest = request.rotations()[rotation];
-			
-			Row bestRow = null;
-			int bestLocation = Integer.MIN_VALUE;
-			for (Row row : possibleRows) {
-				if (residenceRowExtendable(land, row, rotatedRequest) && row.getCurrentLocation() > bestLocation) {
-					bestLocation = row.getCurrentLocation();
-					bestRow = row;
-				}
-			}
-			
-			// If it is still null, it means we didn't find the row to place it
-			if (bestRow == null) {
-				return new Move(false);
-			}
-			
-			// TODO: (Future) align building so that padding is on opposite side of road
-			
-			// All decided, now generate the complete
-			Move move = padding(request, rotation, land, bestRow);
-			if(!land.buildable(move.request.rotations()[move.rotation], move.location)) {
-				System.out.println("Canot build");
-			}
-			return move;
 		}
+		Set<Row> possibleRows;
+		if (is4) {
+			possibleRows = residenceRows.get(4);
+		} else {
+			possibleRows = residenceRows.get(3);
+		}
+		
+		/*
+		 *  Now we have the rotation we want, and the set of rows we can put it in
+		 */
+		
+		Building rotatedRequest = request.rotations()[rotation];
+		
+		Row bestRow = null;
+		int bestLocation = Integer.MIN_VALUE;
+		for (Row row : possibleRows) {
+			int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest);
+			if (positionInRow >= 0 && positionInRow > bestLocation) {
+				bestLocation = positionInRow;
+				bestRow = row;
+			}
+		}
+		
+		// If it is still null, it means we didn't find the row to place it
+		if (bestRow == null) {
+			return new Move(false);
+		}
+		
+		// All decided, now generate the complete move
+		Padding padding = new MyPadding();
+		Move move = padding.getPadding(request, rotation, land, bestRow, bestLocation);
+		if(!land.buildable(move.request.rotations()[move.rotation], move.location)) {
+			System.out.println("Cannot build");
+		}
+		return move;
 	}
 
 	public int[] getBuildingDimensions(Building factory){
@@ -388,29 +400,20 @@ public class Player implements pentos.sim.Player {
 		return null;
 	}
 
-	private static boolean residenceRowExtendable(Land land, Row row, Building residence) {
+	private static int residenceRowExtendPosition(Land land, Row row, Building residence) {
 		if (residence.getType() != Type.RESIDENCE) {
 			throw new RuntimeException("Incorrect building type inputted.");
 		}
 		
-		int maxWidth = Integer.MIN_VALUE;
-		for (Cell cell : residence) {
-			if (cell.j > maxWidth) {
-				maxWidth = cell.j;
+		int position = row.getCurrentLocation();
+		while (position >= 0) {
+			if(land.buildable(residence, new Cell(row.getStart(), position))) {
+				return position;
 			}
+			position--;
 		}
 		
-		// If row has reached the end of the board, can't build here
-		if (row.getCurrentLocation() - maxWidth < 0) {
-			
-		}
-		
-		// Check if you can build to the left starting from currentLocation
-		if (land.buildable(residence, new Cell(row.getStart(), row.getCurrentLocation() - maxWidth))) {
-			return true;
-		} else {
-			return false;
-		}
+		return -1;
 	}
 	
 	private static int countCellsOnLeft(Building building) {
