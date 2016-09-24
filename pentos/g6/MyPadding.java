@@ -11,31 +11,29 @@ import pentos.sim.Land;
 import pentos.sim.Move;
 
 public class MyPadding implements Padding {
+	private int rowMin = Integer.MAX_VALUE;
+	private int rowMax = Integer.MIN_VALUE;
+	private int colMin = Integer.MAX_VALUE;
+	private int colMax = Integer.MIN_VALUE;
+	private int width = Integer.MIN_VALUE;
+	private int[][] hasCell = new int[50][50];
+	private int paddType = 1;
+
+	
+	public MyPadding(){
+		for (int[] array : hasCell) {
+			Arrays.fill(array, 0);
+		}
+	}
 
 	@Override
 	public Move getPadding(Building request, int rotation, Land land, Row row, int location) {
-		int rowMin = Integer.MAX_VALUE, rowMax = Integer.MIN_VALUE;
-		int colMin = Integer.MAX_VALUE, colMax = Integer.MIN_VALUE;
-		Iterator<Cell> iter = request.rotations()[rotation].iterator();
-		int paddType = 1;
-		// Map<Integer,Map<Integer,Cell>> cellMap = new HashMap<>();
-		boolean[][] hasBuildingCell = new boolean[50][50];
-		for (boolean[] array : hasBuildingCell) {
-			Arrays.fill(array, false);
-		}
-		while (iter.hasNext()) {
-			Cell temp = iter.next();
-			//hasBuildingCell[temp.i + currentRow.getStart() - 1][currentRow.getCurrentLocation() - temp.j + 1] = true;
-			rowMin = (temp.i < rowMin) ? temp.i : rowMin;
-			rowMax = (temp.i > rowMax) ? temp.i : rowMax;
-			colMin = (temp.j < colMin) ? temp.j : colMin;
-			colMax = (temp.j > colMax) ? temp.j : colMax;
-		}
-		iter = request.rotations()[rotation].iterator();
-		while (iter.hasNext()) {
-			Cell temp = iter.next();
-			hasBuildingCell[temp.i + row.getStart()][row.getCurrentLocation() - colMax + temp.j] = true;
-		}
+		//Iterator<Cell> iter = request.rotations()[rotation].iterator();
+		Set<Cell> water = new HashSet<>();
+		Set<Cell> park = new HashSet<>();
+		Set<Cell> road = new HashSet<>();
+		getBuildingDetails(request.rotations()[rotation].iterator(),row);
+		
 		for (int i = row.getStart(); i < row.getEnd()
 				&& row.getCurrentLocation() != land.side - 1; i++) {
 			if (land.isField(i, row.getCurrentLocation() + 1))
@@ -45,10 +43,53 @@ public class MyPadding implements Padding {
 		}
 
 		// Add water and park by filling blank spaces
-		Set<Cell> water = new HashSet<>();
-		Set<Cell> park = new HashSet<>();
-		Set<Cell> road = new HashSet<>();
-		for (int i = row.getStart(); i < row.getEnd(); i++) {
+		int colLeft = row.getCurrentLocation() - colMax + colMin - 1; 
+		int colRight = row.getCurrentLocation();
+		int rowTop = row.getStart();
+		int rowBottom = row.getEnd();
+		int waterCells = 0;
+		for (int i = rowBottom - 1 , j = colLeft + 1 ; i < rowTop&&waterCells<4 ; i--) {
+			if(hasCell[i][j]==0&&waterCells<4) {
+				water.add(new Cell(i,j));
+				hasCell[i-1][j] = 1;
+				waterCells++;
+			}
+			if(hasCell[i][j+1]==0&&waterCells<4) {
+				water.add(new Cell(i,j-1));
+				hasCell[i-1][j] = 1;
+				waterCells++;
+			}
+			if(i-1>=rowTop&&hasCell[i-1][j]==0&&waterCells<4){
+				water.add(new Cell(i-1,j));
+				hasCell[i-1][j] = 1;
+				waterCells++;
+			}
+			
+			if(i-1>=rowTop&&hasCell[i-1][j+1]==0&&waterCells<4) {
+				water.add(new Cell(i-1,j+1));
+				hasCell[i-1][j] = 1;
+				waterCells++;
+			}
+			
+			if(i+1<rowBottom&&hasCell[i+1][j]==0&&waterCells<4) {
+				water.add(new Cell(i+1,j));
+				hasCell[i-1][j] = 1;
+				waterCells++;
+			}
+			
+			if(i+1<rowBottom&&hasCell[i+1][j+1]==0&&waterCells<4) {
+				water.add(new Cell(i+1,j+1));
+				hasCell[i-1][j] = 1;
+				waterCells++;
+			}
+		}
+		if(waterCells<4){
+			for(int i = rowBottom-1, j = colLeft;i>rowTop&&waterCells<4;i--){
+				water.add(new Cell(i,j));
+				waterCells++;
+			}
+		}
+		/*for (int i = row.getStart(); i < row.getEnd(); i++) {
 			for (int j = row.getCurrentLocation(); j > row.getCurrentLocation() - colMax + colMin	-1; j--) {
 				if (!hasBuildingCell[i][j]) {
 					if (paddType == 1)
@@ -57,7 +98,7 @@ public class MyPadding implements Padding {
 						park.add(new Cell(i, j));
 				}
 			}
-		}
+		}*/
 		
 		/*// Adding extra water cells
 		if(paddType == 1 && water.size() < 4){
@@ -88,11 +129,18 @@ public class MyPadding implements Padding {
 			}
 
 		}
-		
-		int width = colMax - colMin + 1;
+		if(row.getParkLocation()>0 && row.getParkLocation()<50) {
+			for(int i = row.getParkLocation();i>row.getParkLocation() - colMax + colMin	- 1; 
+					i--) {
+				if (land.unoccupied(row.getParkLocation(),i)) {
+					park.add(new Cell(row.getParkLocation(),i));
+				}
+			}
+
+		}
 		row.setCurrentLocation(row.getCurrentLocation() - width);
 		
-		if (width == 5 && row.getStart() < row.getRoadLocation()) {
+		/*if (width == 5 && row.getStart() < row.getRoadLocation()) {
 			Set<Cell> newWater = new HashSet<>();
 			for (Cell cell : water) {
 				newWater.add(new Cell(cell.i-1, cell.j));
@@ -106,9 +154,26 @@ public class MyPadding implements Padding {
 			return new Move(true,request,new Cell(row.getStart() + 1,
 					row.getCurrentLocation() + 1),
 					rotation, road, newWater, newPark);
-		}
+		}*/
 		
 		return new Move(true,request,new Cell(row.getStart(),row.getCurrentLocation() + 1),rotation,road,water,park);
+	}
+	
+	public void getBuildingDetails(Iterator<Cell> iter, Row row){
+		while (iter.hasNext()) {
+			Cell temp = iter.next();
+			//hasBuildingCell[temp.i + currentRow.getStart() - 1][currentRow.getCurrentLocation() - temp.j + 1] = true;
+			rowMin = (temp.i < rowMin) ? temp.i : rowMin;
+			rowMax = (temp.i > rowMax) ? temp.i : rowMax;
+			colMin = (temp.j < colMin) ? temp.j : colMin;
+			colMax = (temp.j > colMax) ? temp.j : colMax;
+		}
+		width = colMax - colMin + 1;
+		
+		while (iter.hasNext()) {
+			Cell temp = iter.next();
+			hasCell[temp.i + row.getStart()][row.getCurrentLocation() - colMax + temp.j] = 1;
+		}
 	}
 
 }
