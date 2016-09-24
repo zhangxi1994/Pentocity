@@ -1,10 +1,8 @@
 package pentos.g6;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 import pentos.sim.Building;
@@ -17,7 +15,7 @@ public class Player implements pentos.sim.Player {
 
 	private static int[] numFactoryRowsPerSize = { 5, 4, 3, 2 };
 	private static int factoryRowSizeShift = 2;
-	private static int[] numResidenceRowsPerSize = { 8, 3 };
+	private static int[] numResidenceRowsPerSize = { 9, 3 };
 	private static int residenceRowSizeShift = 3;
 	
 	private HashMap<Integer, Set<Row>> factoryRows = new HashMap<Integer, Set<Row>>();
@@ -205,25 +203,26 @@ public class Player implements pentos.sim.Player {
 			int[] residenceDimensions = getBuildingDimensions(rotations[i]);
 			if(residenceDimensions[0] >= 4) {
 				// Size 4 or more
-				int leftCells = countCellsOnLeft(rotations[i]);
+				int leftColumnCells = countCellsOnLeft(rotations[i]);
 				if (is4) {
-					if (leftCells < minCellsOnLeft) {
-						minCellsOnLeft = leftCells;
+					if (leftColumnCells < minCellsOnLeft) {
+						minCellsOnLeft = leftColumnCells;
 						rotation = i;
 					}
 				} else {
 					is4 = true;
 					rotation = i;
-					minCellsOnLeft = leftCells;
+					minCellsOnLeft = leftColumnCells;
 				}
 			} else {
 				// Size 3 or less
 				if (is4) {
 					// Forget this rotation
-				} else {
-					int leftCells = countCellsOnLeft(rotations[i]);
-					if (leftCells < minCellsOnLeft) {
-						minCellsOnLeft = leftCells;
+				} else if (residenceDimensions[0] == 3) {
+					// Only consider height 3s
+					int leftColumnCells = countCellsOnLeft(rotations[i]);
+					if (leftColumnCells < minCellsOnLeft) {
+						minCellsOnLeft = leftColumnCells;
 						rotation = i;
 					}
 				}
@@ -237,7 +236,7 @@ public class Player implements pentos.sim.Player {
 		}
 		
 		/*
-		 *  Now we have the rotation we want, and the set of rows we can put it in
+		 *  Now we have the rotation we want, with the set of rows we can put it in
 		 */
 		
 		Building rotatedRequest = request.rotations()[rotation];
@@ -297,12 +296,6 @@ public class Player implements pentos.sim.Player {
 
 	}
 
-	public Move fillCell(Iterator cells, int fillType) {
-		Set<Cell> paddedCells = new HashSet<>();
-
-		return null;
-	}
-
 	private static int residenceRowExtendPosition(Land land, Row row, Building residence) {
 		if (residence.getType() != Type.RESIDENCE) {
 			throw new RuntimeException("Incorrect building type inputted.");
@@ -320,15 +313,15 @@ public class Player implements pentos.sim.Player {
 	}
 	
 	private static int countCellsOnLeft(Building building) {
-		int minRow = Integer.MAX_VALUE;
+		int minCol = Integer.MAX_VALUE;
 		int numCellsAtMin = 0;
 		Iterator<Cell> iterator = building.iterator();
 		while(iterator.hasNext()) {
 			Cell cell = iterator.next();
-			if (cell.i < minRow) {
-				minRow = cell.i;
+			if (cell.j < minCol) {
+				minCol = cell.j;
 				numCellsAtMin = 1;
-			} else if (cell.i == minRow) {
+			} else if (cell.j == minCol) {
 				numCellsAtMin++;
 			}
 		}
