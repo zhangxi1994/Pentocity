@@ -304,6 +304,7 @@ public class Player implements pentos.sim.Player {
 			colMax = (temp.j > colMax) ? temp.j : colMax;
 		}
 		iter = request.rotations()[rotation].iterator();
+		int width = colMax - colMin + 1;
 		while (iter.hasNext()) {
 			Cell temp = iter.next();
 			hasBuildingCell[temp.i + currentRow.getStart()][currentRow.getCurrentLocation() - colMax + temp.j] = true;
@@ -355,13 +356,11 @@ public class Player implements pentos.sim.Player {
 			for(int i = currentRow.getCurrentLocation();i>currentRow.getCurrentLocation() - colMax + colMin	- 1; 
 					i--) {
 				if (land.unoccupied(currentRow.getRoadLocation(),i)) {
-					road.add(new Cell(currentRow.getRoadLocation(),i));
+					road.add(new Cell(currentRow.getRoadLocation(),i)); 
 				}
 			}
 
 		}
-		
-		int width = colMax - colMin + 1;
 		currentRow.setCurrentLocation(currentRow.getCurrentLocation() - width);
 		
 		if (width == 5 && currentRow.getStart() < currentRow.getRoadLocation()) {
