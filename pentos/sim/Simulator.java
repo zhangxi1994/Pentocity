@@ -18,7 +18,7 @@ class Simulator {
     {
 	boolean gui = false;
 	boolean gui_manual_refresh_on_cutter = false;
-	String group = "g0";
+	String group = "g6";
 	Class <Player> g_class = null;
 	Class <Sequencer> s_class = null;
 	String sequencer = "random";
