@@ -12,6 +12,8 @@ public class Row {
 	private int currentLocation;
 	private int roadLocation;
 	private int parkLocation;
+	
+	private boolean recentlyPadded;
 
 	private Set<Building> buildings;
 	
@@ -65,5 +67,17 @@ public class Row {
 		return "Row from " + start + " to " + end
 				+ ". Road at " + roadLocation
 				+ " and park at " + parkLocation;
+	}
+	
+	public void setWasRecentlyPadded() {
+		this.recentlyPadded = true;
+	}
+	
+	public void setWasNotRecentlyPadded() {
+		this.recentlyPadded = false;
+	}
+	
+	public boolean getRecentlyPadded() {
+		return this.recentlyPadded;
 	}
 }

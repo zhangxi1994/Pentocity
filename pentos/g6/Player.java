@@ -266,7 +266,14 @@ public class Player implements pentos.sim.Player {
 		
 		// All decided, now generate the complete move
 		Padding padding = new MyPadding();
-		Move move = padding.getPadding(request, rotation, land, bestRow, bestLocation);
+		Move move;
+		if (bestRow.getRecentlyPadded()) {
+			move = padding.getPadding(request, rotation, land, bestRow, bestLocation, false);
+			bestRow.setWasNotRecentlyPadded();
+		} else {
+			move = padding.getPadding(request, rotation, land, bestRow, bestLocation, true);
+			bestRow.setWasRecentlyPadded();
+		}
 		if(!land.buildable(move.request.rotations()[move.rotation], move.location)) {
 			System.out.println("***Cannot build***"+move.location.i+","+move.location.j);
 		}
