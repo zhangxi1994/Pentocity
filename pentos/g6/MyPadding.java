@@ -50,7 +50,8 @@ public class MyPadding implements Padding {
 				previousCol = temp.j;
 			else if (previousCol == temp.j)
 				isStraight++;
-			System.out.println("Budling Cell---" + (temp.i + row.getStart()) + "," + (location + temp.j));
+			// System.out.println("Budling Cell---" + (temp.i + row.getStart())
+			// + "," + (location + temp.j));
 		}
 		for (int i = row.getEnd() - 1, j = location; i >= rowTop && waterCells < 4 && isStraight < 4; i--) {
 			/*
@@ -112,13 +113,9 @@ public class MyPadding implements Padding {
 					if (!checkValidWaterCell(iterator.next())) {
 						waterCells--;
 						iterator.remove();
-						System.out.println("water cell remove");
+						//System.out.println("water cell remove");
 					}
 				}
-				/*
-				 * for (Cell cell : water) { if (!checkValidWaterCell(cell)) {
-				 * waterCells--; water.remove(cell); } }
-				 */
 			}
 
 			if (waterCells < 4 && isStraight < 4) {
@@ -137,6 +134,7 @@ public class MyPadding implements Padding {
 				}
 				extend = true;
 			}
+
 		}
 		/*
 		 * for (int i = row.getStart(); i < row.getEnd(); i++) { for (int j =
@@ -153,31 +151,28 @@ public class MyPadding implements Padding {
 				}
 			}
 		}
-		int parksize = 0;
 		if (row.getParkLocation() > 0 && row.getParkLocation() < 50) {
 			for (int i = row.getCurrentLocation(); i >= location; i--) {
 				if (land.unoccupied(row.getParkLocation(), i)) {
 					park.add(new Cell(row.getParkLocation(), i));
+					row.setParkSize(row.getParkSize()+1);
 				}
 				if (land.unoccupied(row.getRoadLocation(), i)) {
 					road.add(new Cell(row.getRoadLocation(), i));
 				}
-				parksize++;
 			}
 			int col = colLeft;
-			while (parksize < 4 && col >= 0) {
+			while (row.getParkSize() < 4 && col >= 0) {
 				if (land.unoccupied(row.getParkLocation(), col)) {
 					park.add(new Cell(row.getParkLocation(), col));
+					row.setParkSize(row.getParkSize()+1);
 				}
 
 				if (land.unoccupied(row.getRoadLocation(), col)) {
 					road.add(new Cell(row.getRoadLocation(), col));
 				}
-
 				col--;
-				parksize++;
 			}
-
 		}
 
 		/*
