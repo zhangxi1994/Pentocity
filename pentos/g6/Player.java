@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import com.sun.xml.internal.bind.v2.runtime.Location;
+
 import pentos.sim.Building;
 import pentos.sim.Building.Type;
 import pentos.sim.Cell;
@@ -260,8 +262,10 @@ public class Player implements pentos.sim.Player {
 		Padding padding = new MyPadding();
 		Move move = padding.getPadding(request, rotation, land, bestRow, bestLocation);
 		if(!land.buildable(move.request.rotations()[move.rotation], move.location)) {
-			System.out.println("Cannot build");
+			System.out.println("***Cannot build***"+move.location.i+","+move.location.j);
 		}
+		//System.out.println(move.location.i+","+move.location.j);
+		//System.out.println("***Can build***");
 		return move;
 	}
 
