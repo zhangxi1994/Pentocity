@@ -94,54 +94,64 @@ public class Player implements pentos.sim.Player {
 		if(request.getType() == Type.FACTORY){
 			int[] factoryDimensions = getBuildingDimensions(request);
 			
-			System.out.println("Request: " + factoryDimensions[0] + "\t" + factoryDimensions[1]);
+			System.out.println("Factory Request: " + factoryDimensions[0] + "\t" + factoryDimensions[1]);
 			
 			Row bestRow = null;
 			int minLength = -1;
 			boolean rotate = false;
 			
-			//This is checking for the best row if you use the first dimension of the factory
-			for(Row row : factoryRows.get(factoryDimensions[0])){
-				if(!factoryRowExtendable(row, land, request.rotations()[0])){
-					continue;
-				}
-				else{
-					if(bestRow == null){
-						bestRow = row;
-						minLength = bestRow.getCurrentLocation() + factoryDimensions[1];
-						rotate = false;
-					}
-					else{
-						if(row.getCurrentLocation() + factoryDimensions[1] < minLength){
-							bestRow = row;
-							minLength = bestRow.getCurrentLocation() + factoryDimensions[1];
-							rotate = false;
-						}
-					}
-				}
-			}
-			//This is checking for the best row if you use the second dimension of the factory
-			if(factoryDimensions[0]!=factoryDimensions[1]){ //This makes sure that Dim2 isn't the same as Dim1
-				for(Row row : factoryRows.get(factoryDimensions[1])){
-					if(!factoryRowExtendable(row, land, request.rotations()[1])){
-						continue;
-					}
-					else{
-						if(bestRow == null){
-							bestRow = row;
-							minLength = bestRow.getCurrentLocation() + factoryDimensions[0];
-							rotate = true;
+			int promotionBump=-1;
+			while(bestRow==null && promotionBump <= 3){
+				promotionBump++;
+				//This is checking for the best row if you use the first dimension of the factory
+				if(factoryDimensions[0] + promotionBump <= 5){ //Gotta make sure it's a valid dimension request
+					for(Row row : factoryRows.get(factoryDimensions[0]+promotionBump)){
+						if(!factoryRowExtendable(row, land, request.rotations()[0])){
+							continue;
 						}
 						else{
-							if(row.getCurrentLocation() + factoryDimensions[0] < minLength){
+							if(bestRow == null){
 								bestRow = row;
-								minLength = bestRow.getCurrentLocation() + factoryDimensions[0];
-								rotate = true;
+								minLength = bestRow.getCurrentLocation() + factoryDimensions[1];
+								rotate = false;
+							}
+							else{
+								if(row.getCurrentLocation() + factoryDimensions[1] < minLength){
+									bestRow = row;
+									minLength = bestRow.getCurrentLocation() + factoryDimensions[1];
+									rotate = false;
+								}
+							}
+						}
+					}
+				}	
+				//This is checking for the best row if you use the second dimension of the factory
+				if(factoryDimensions[0]!=factoryDimensions[1]){ //This makes sure that Dim2 isn't the same as Dim1
+					if(factoryDimensions[1] + promotionBump <= 5){	//This makes sure it's a valid dimension request
+						for(Row row : factoryRows.get(factoryDimensions[1]+promotionBump)){
+							if(!factoryRowExtendable(row, land, request.rotations()[1])){
+								continue;
+							}
+							else{
+								if(bestRow == null){
+									bestRow = row;
+									minLength = bestRow.getCurrentLocation() + factoryDimensions[0];
+									rotate = true;
+								}
+								else{
+									if(row.getCurrentLocation() + factoryDimensions[0] < minLength){
+										bestRow = row;
+										minLength = bestRow.getCurrentLocation() + factoryDimensions[0];
+										rotate = true;
+									}
+								}
 							}
 						}
 					}
 				}
 			}
+			
+			
 
 			//Suppose no best row was found, you should reject the request
 			if(bestRow==null){
@@ -151,7 +161,10 @@ public class Player implements pentos.sim.Player {
 			
 			
 			boolean accept = true;
-			Cell location = new Cell(bestRow.getStart(), bestRow.getCurrentLocation());
+			int yLoc = (bestRow.getRoadLocation() > bestRow.getStart()) ? bestRow.getStart() + promotionBump : bestRow.getStart();
+//			int yLoc = bestRow.getStart();
+			System.out.println("Placing at " + bestRow.getCurrentLocation() + ", " + yLoc);
+			Cell location = new Cell(yLoc, bestRow.getCurrentLocation());
 			int rotation = (rotate) ? 1 : 0;
 			
 			Set<Cell> road = new HashSet<Cell>();
