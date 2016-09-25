@@ -15,7 +15,7 @@ public class Player implements pentos.sim.Player {
 
 	private static int[] numFactoryRowsPerSize = { 5, 4, 3, 2 };
 	private static int factoryRowSizeShift = 2;
-	private static int[] numResidenceRowsPerSize = { 9, 3 };
+	private static int[] numResidenceRowsPerSize = { 6, 4, 1 };
 	private static int residenceRowSizeShift = 3;
 	
 	private HashMap<Integer, Set<Row>> factoryRows = new HashMap<Integer, Set<Row>>();
@@ -35,7 +35,7 @@ public class Player implements pentos.sim.Player {
 		int currentRow = 0;
 		int rowNumber= 0;
 		for (int i = 0; i < numFactoryRowsPerSize.length; ++i) {
-			for (int j = 0; j < numFactoryRowsPerSize[i]; j++) {
+			for (int j = 0; j < numFactoryRowsPerSize[i]; ++j) {
 				int roadLocation;
 				if(rowNumber % 2 == 0) {
 					roadLocation = currentRow - 1;
@@ -63,7 +63,7 @@ public class Player implements pentos.sim.Player {
 		int currentRow = 0;
 		int rowNumber= 0;
 		for (int i = 0; i < numResidenceRowsPerSize.length; ++i) {
-			for (int j = 0; j < numResidenceRowsPerSize[i]; j++) {
+			for (int j = 0; j < numResidenceRowsPerSize[i]; ++j) {
 				int roadLocation, parkLocation;
 				if(rowNumber % 2 == 0) {
 					roadLocation = currentRow - 1;
@@ -198,11 +198,17 @@ public class Player implements pentos.sim.Player {
 		int rotation = 0;
 		int minCellsOnLeft = Integer.MAX_VALUE;
 		boolean is4 = false;
+		boolean is5 = false;
 		Building[] rotations = request.rotations();
 		for (int i = 0; i < rotations.length; ++i) {
 			int[] residenceDimensions = getBuildingDimensions(rotations[i]);
-			if(residenceDimensions[0] >= 4) {
-				// Size 4 or more
+			if (residenceDimensions[0] == 5) {
+				// If size 5, use this rotation
+				is5 = true;
+				rotation = i;
+				break;
+			} else if(residenceDimensions[0] == 4) {
+				// Size 4
 				int leftColumnCells = countCellsOnLeft(rotations[i]);
 				if (is4) {
 					if (leftColumnCells < minCellsOnLeft) {
@@ -229,7 +235,9 @@ public class Player implements pentos.sim.Player {
 			}
 		}
 		Set<Row> possibleRows;
-		if (is4) {
+		if (is5) {
+			possibleRows = residenceRows.get(5);
+		}else if (is4) {
 			possibleRows = residenceRows.get(4);
 		} else {
 			possibleRows = residenceRows.get(3);
