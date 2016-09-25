@@ -10,6 +10,7 @@ import pentos.sim.Building.Type;
 import pentos.sim.Cell;
 import pentos.sim.Land;
 import pentos.sim.Move;
+import pentos.g0.*;
 
 public class Player implements pentos.sim.Player {
 
@@ -23,6 +24,8 @@ public class Player implements pentos.sim.Player {
 	
 	private enum ResidenceType {LINE, L_FACE, R_FACE, INV_L, L, R_BLK, L_BLK, INV_LIGHTNING,
 								LIGHTNING, T, U, RANGLE, STEPS, PLUS, L_TOTEM, R_TOTEM, INV_Z, Z};
+	
+	int numberOfRejections = 0; //Counts the number of rejections.
 	
 	@Override
 	public void init() {
@@ -87,121 +90,130 @@ public class Player implements pentos.sim.Player {
 			}
 		}		
 	}
-
+	
 	@Override
 	public Move play(Building request, Land land) {
 
 		if(request.getType() == Type.FACTORY){
-			int[] factoryDimensions = getBuildingDimensions(request);
-			
-			System.out.println("Factory Request: " + factoryDimensions[0] + "\t" + factoryDimensions[1]);
-			
-			Row bestRow = null;
-			int minLength = -1;
-			boolean rotate = false;
-			
-			int promotionBump=-1;
-			while(bestRow==null && promotionBump <= 3){
-				promotionBump++;
-				//This is checking for the best row if you use the first dimension of the factory
-				if(factoryDimensions[0] + promotionBump <= 5){ //Gotta make sure it's a valid dimension request
-					for(Row row : factoryRows.get(factoryDimensions[0]+promotionBump)){
-						if(!factoryRowExtendable(row, land, request.rotations()[0])){
-							continue;
-						}
-						else{
-							if(bestRow == null){
-								bestRow = row;
-								minLength = bestRow.getCurrentLocation() + factoryDimensions[1];
-								rotate = false;
-							}
-							else{
-								if(row.getCurrentLocation() + factoryDimensions[1] < minLength){
-									bestRow = row;
-									minLength = bestRow.getCurrentLocation() + factoryDimensions[1];
-									rotate = false;
-								}
-							}
-						}
-					}
-				}	
-				//This is checking for the best row if you use the second dimension of the factory
-				if(factoryDimensions[0]!=factoryDimensions[1]){ //This makes sure that Dim2 isn't the same as Dim1
-					if(factoryDimensions[1] + promotionBump <= 5){	//This makes sure it's a valid dimension request
-						for(Row row : factoryRows.get(factoryDimensions[1]+promotionBump)){
-							if(!factoryRowExtendable(row, land, request.rotations()[1])){
-								continue;
-							}
-							else{
-								if(bestRow == null){
-									bestRow = row;
-									minLength = bestRow.getCurrentLocation() + factoryDimensions[0];
-									rotate = true;
-								}
-								else{
-									if(row.getCurrentLocation() + factoryDimensions[0] < minLength){
-										bestRow = row;
-										minLength = bestRow.getCurrentLocation() + factoryDimensions[0];
-										rotate = true;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-			
-			
-
-			//Suppose no best row was found, you should reject the request
-			if(bestRow==null){
-				System.out.println("Rejecting because no bestRow was found.");
-				return new Move(false);
-			}
-			
-			
-			boolean accept = true;
-			int yLoc = (bestRow.getRoadLocation() > bestRow.getStart()) ? bestRow.getStart() + promotionBump : bestRow.getStart();
-//			int yLoc = bestRow.getStart();
-			System.out.println("Placing at " + bestRow.getCurrentLocation() + ", " + yLoc);
-			Cell location = new Cell(yLoc, bestRow.getCurrentLocation());
-			int rotation = (rotate) ? 1 : 0;
-			
-			Set<Cell> road = new HashSet<Cell>();
-			if(bestRow.getStart() == 0){
-				//This means bestRow is on the top edge and needs no roads
-				//Do nothing
-			}
-			else if(bestRow.getEnd() == 50){
-				//This means bestRow is on the bottom edge and needs no roads
-				//Do nothing
-			}
-			else{
-				int extension = (rotate) ? factoryDimensions[0] : factoryDimensions[1];
-				for(int i=0; i<extension; i++){
-					if(!land.unoccupied(bestRow.getRoadLocation(), bestRow.getCurrentLocation() + i)){
-						//This means it should already be road, so don't do anything. There might be a logic issue here.
-						//return new Move(false);
-						continue;
-					}
-					else{
-						road.add(new Cell(bestRow.getRoadLocation(), bestRow.getCurrentLocation() + i));
-					}
-				}
-			}
-			
-		
-			Set<Cell> water = new HashSet<Cell>(); //This stays empty. No water
-			Set<Cell> park = new HashSet<Cell>(); //This stays empty. No parks
-			
-			//Update currentLocation! 
-			bestRow.setCurrentLocation((rotate) ? bestRow.getCurrentLocation() + factoryDimensions[0] : bestRow.getCurrentLocation() + factoryDimensions[1]);
-			return new Move(accept, request, location, rotation, road, water, park);
+			return generateFactoryMove(request, land);
 			
 		} else {
 			// Received request for residence
 			return generateResidenceMove(request, land);
 		}
+	}
+	
+	private Move generateFactoryMove(Building request, Land land){
+		if(request.getType() != Type.FACTORY){
+			throw new RuntimeException("Calling factory play on non-factory");
+		}
+		
+		int[] factoryDimensions = getBuildingDimensions(request);
+		
+		System.out.println("Factory Request: " + factoryDimensions[0] + "\t" + factoryDimensions[1]);
+		
+		Row bestRow = null;
+		int minLength = -1;
+		boolean rotate = false;
+		
+		int promotionBump=-1;
+		while(bestRow==null && promotionBump <= 3){
+			promotionBump++;
+			//This is checking for the best row if you use the first dimension of the factory
+			if(factoryDimensions[0] + promotionBump <= 5){ //Gotta make sure it's a valid dimension request
+				for(Row row : factoryRows.get(factoryDimensions[0]+promotionBump)){
+					if(!factoryRowExtendable(row, land, request.rotations()[0])){
+						continue;
+					}
+					else{
+						if(bestRow == null){
+							bestRow = row;
+							minLength = bestRow.getCurrentLocation() + factoryDimensions[1];
+							rotate = false;
+						}
+						else{
+							if(row.getCurrentLocation() + factoryDimensions[1] < minLength){
+								bestRow = row;
+								minLength = bestRow.getCurrentLocation() + factoryDimensions[1];
+								rotate = false;
+							}
+						}
+					}
+				}
+			}	
+			//This is checking for the best row if you use the second dimension of the factory
+			if(factoryDimensions[0]!=factoryDimensions[1]){ //This makes sure that Dim2 isn't the same as Dim1
+				if(factoryDimensions[1] + promotionBump <= 5){	//This makes sure it's a valid dimension request
+					for(Row row : factoryRows.get(factoryDimensions[1]+promotionBump)){
+						if(!factoryRowExtendable(row, land, request.rotations()[1])){
+							continue;
+						}
+						else{
+							if(bestRow == null){
+								bestRow = row;
+								minLength = bestRow.getCurrentLocation() + factoryDimensions[0];
+								rotate = true;
+							}
+							else{
+								if(row.getCurrentLocation() + factoryDimensions[0] < minLength){
+									bestRow = row;
+									minLength = bestRow.getCurrentLocation() + factoryDimensions[0];
+									rotate = true;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		
+		//Suppose no best row was found, you should reject the request
+		if(bestRow==null){
+			System.out.println("Rejecting because no bestRow was found.");
+			numberOfRejections++;
+			return new Move(false);
+		}
+		
+		
+		boolean accept = true;
+		int yLoc = (bestRow.getRoadLocation() > bestRow.getStart()) ? bestRow.getStart() + promotionBump : bestRow.getStart();
+//		int yLoc = bestRow.getStart();
+		System.out.println("Placing at " + bestRow.getCurrentLocation() + ", " + yLoc);
+		Cell location = new Cell(yLoc, bestRow.getCurrentLocation());
+		int rotation = (rotate) ? 1 : 0;
+		
+		Set<Cell> road = new HashSet<Cell>();
+		if(bestRow.getStart() == 0){
+			//This means bestRow is on the top edge and needs no roads
+			//Do nothing
+		}
+		else if(bestRow.getEnd() == 50){
+			//This means bestRow is on the bottom edge and needs no roads
+			//Do nothing
+		}
+		else{
+			int extension = (rotate) ? factoryDimensions[0] : factoryDimensions[1];
+			for(int i=0; i<extension; i++){
+				if(!land.unoccupied(bestRow.getRoadLocation(), bestRow.getCurrentLocation() + i)){
+					//This means it should already be road, so don't do anything. There might be a logic issue here.
+					//return new Move(false);
+					continue;
+				}
+				else{
+					road.add(new Cell(bestRow.getRoadLocation(), bestRow.getCurrentLocation() + i));
+				}
+			}
+		}
+		
+	
+		Set<Cell> water = new HashSet<Cell>(); //This stays empty. No water
+		Set<Cell> park = new HashSet<Cell>(); //This stays empty. No parks
+		
+		//Update currentLocation! 
+		bestRow.setCurrentLocation((rotate) ? bestRow.getCurrentLocation() + factoryDimensions[0] : bestRow.getCurrentLocation() + factoryDimensions[1]);
+		return new Move(accept, request, location, rotation, road, water, park);
+		
 	}
 
 	private Move generateResidenceMove(Building request, Land land) {
@@ -274,6 +286,7 @@ public class Player implements pentos.sim.Player {
 		
 		// If it is still null, it means we didn't find the row to place it
 		if (bestRow == null) {
+			numberOfRejections++;
 			return new Move(false);
 		}
 		
