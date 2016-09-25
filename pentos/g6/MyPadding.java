@@ -50,7 +50,7 @@ public class MyPadding implements Padding {
 				previousCol = temp.j;
 			else if (previousCol == temp.j)
 				isStraight++;
-			System.out.println("Budling Cell---" + (temp.i + row.getStart()) + "," + (location + temp.j));
+			//System.out.println("Budling Cell---" + (temp.i + row.getStart()) + "," + (location + temp.j));
 		}
 		for (int i = row.getEnd() - 1, j = location; i >= rowTop && waterCells < 4 && isStraight < 4; i--) {
 			/*
@@ -112,10 +112,6 @@ public class MyPadding implements Padding {
 					System.out.println("water cell remove");
 				}
 			}
-			/*
-			 * for (Cell cell : water) { if (!checkValidWaterCell(cell)) {
-			 * waterCells--; water.remove(cell); } }
-			 */
 		}
 
 		if (waterCells < 4 && isStraight < 4) {
