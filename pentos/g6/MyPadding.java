@@ -32,8 +32,8 @@ public class MyPadding implements Padding {
 	public Move getPadding(Building request, int rotation, Land land, Row row, int location) {
 		getBuildingDetails(request.rotations()[rotation].iterator(), row);
 		Iterator<Cell> iter = request.rotations()[rotation].iterator();
-		colLeft = row.getCurrentLocation() - width;
-		colRight = row.getCurrentLocation();
+		colLeft = location - 1; // exclusive
+		colRight = location + width - 1; // inclusive
 		rowTop = row.getStart();
 		rowBottom = row.getEnd(); // cannot equal to
 		int waterCells = 0;
@@ -50,10 +50,10 @@ public class MyPadding implements Padding {
 				previousCol = temp.j;
 			else if (previousCol == temp.j)
 				isStraight++;
-			System.out.println(
-					"Budling Cell---" + (temp.i + row.getStart()) + "," + (row.getCurrentLocation() - colMax + temp.j));
+			/*System.out.println(
+					"Budling Cell---" + (temp.i + row.getStart()) + "," + (row.getCurrentLocation() - colMax + temp.j));*/
 		}
-		for (int i = rowBottom - 1, j = colLeft + 1; i >= rowTop && waterCells < 4 && isStraight < 4; i--) {
+		for (int i = row.getEnd() - 1, j = location; i >= rowTop && waterCells < 4 && isStraight < 4; i--) {
 			// System.out.println(i+","+j+","+colLeft);
 			if (hasCell[i][j] == 0 && land.unoccupied(i, j) && waterCells < 4) {
 				water.add(new Cell(i, j));
@@ -144,7 +144,7 @@ public class MyPadding implements Padding {
 
 		// Add road when necessary
 		if (row.getRoadLocation() > 0 && row.getRoadLocation() < 50) {
-			for (int i = row.getCurrentLocation(); i > location; i--) {
+			for (int i = row.getCurrentLocation(); i >= location; i--) {
 				if (land.unoccupied(row.getRoadLocation(), i)) {
 					road.add(new Cell(row.getRoadLocation(), i));
 				}
@@ -157,7 +157,7 @@ public class MyPadding implements Padding {
 		}
 		int parksize = 0;
 		if (row.getParkLocation() > 0 && row.getParkLocation() < 50 && isStraight < 4) {
-			for (int i = row.getCurrentLocation(); i > row.getCurrentLocation() - width; i--) {
+			for (int i = row.getCurrentLocation(); i >= location; i--) {
 				if (land.unoccupied(row.getParkLocation(), i)) {
 					park.add(new Cell(row.getParkLocation(), i));
 				}
@@ -186,14 +186,13 @@ public class MyPadding implements Padding {
 		System.out.println("Building location:"+row.getStart() + "," + location);getClass();
 		System.out.println("Building:");
 		printCells(request.rotations()[rotation].iterator());
-		System.out.println("water:");
+		System.out.println("Water:");
 		printCells(water);
+		System.out.println("Road:");
+		printCells(road);
 		
-		if (isStraight < 4) {
-			row.setCurrentLocation(row.getCurrentLocation() - width);
-			return new Move(true, request, new Cell(row.getStart(), location), rotation, road, water, park);
-		} else
-			return new Move(true, request, new Cell(row.getStart(), location), rotation, road, water, park);
+		row.setCurrentLocation(location - 1);
+		return new Move(true, request, new Cell(row.getStart(), location), rotation, road, water, park);
 	}
 
 	public boolean checkValidWaterCell(Cell cell) {
