@@ -50,12 +50,13 @@ public class MyPadding implements Padding {
 				previousCol = temp.j;
 			else if (previousCol == temp.j)
 				isStraight++;
-			System.out.println(
-					"Budling Cell---" + (temp.i + row.getStart()) + "," + (location+ temp.j));
+			System.out.println("Budling Cell---" + (temp.i + row.getStart()) + "," + (location + temp.j));
 		}
-		for (int i = row.getEnd()-1, j = location; i >= rowTop && waterCells < 4 && isStraight < 4; i--) {
-			/*System.out.println(
-					"Budling Cell---" + (temp.i + row.getStart()) + "," + (row.getCurrentLocation() - colMax + temp.j));*/
+		for (int i = row.getEnd() - 1, j = location; i >= rowTop && waterCells < 4 && isStraight < 4; i--) {
+			/*
+			 * System.out.println( "Budling Cell---" + (temp.i + row.getStart())
+			 * + "," + (row.getCurrentLocation() - colMax + temp.j));
+			 */
 		}
 		for (int i = row.getEnd() - 1, j = location; i >= rowTop && waterCells < 4 && isStraight < 4; i--) {
 			// System.out.println(i+","+j+","+colLeft);
@@ -118,22 +119,16 @@ public class MyPadding implements Padding {
 		}
 
 		if (waterCells < 4 && isStraight < 4) {
-			if (checkValidWaterCell(new Cell(rowBottom - 1, colLeft))) {
-				for (int i = rowBottom - 1, j = colLeft; i >= rowTop && waterCells < 4; i--) {
+			if (rowBottom - 1 >= 0 && colLeft >= 0 && checkValidWaterCell(new Cell(rowBottom - 1, colLeft))) {
+				for (int i = rowBottom - 1, j = colLeft; i >= rowTop && waterCells < 4&&j>=0; i--) {
 					water.add(new Cell(i, j));
-					//System.out.println("Water Cell:" + i + "," + j);
+					// System.out.println("Water Cell:" + i + "," + j);
 					waterCells++;
 				}
-			} /*
-				 * else if (checkValidWaterCell(new Cell(rowTop, colLeft))) {
-				 * for (int i = rowTop, j = colLeft; i < rowBottom && waterCells
-				 * < 4; i++) { water.add(new Cell(i, j));
-				 * System.out.println("Water Cell:" + i + "," + j);
-				 * waterCells++; } }
-				 */else {
-				for (int i = rowTop, j = colLeft; i < rowBottom && waterCells < 4; i++) {
+			} else {
+				for (int i = rowTop, j = colLeft; i < rowBottom && waterCells < 4&&j>=0; i++) {
 					water.add(new Cell(i, j));
-					//System.out.println("Water Cell:" + i + "," + j);
+					// System.out.println("Water Cell:" + i + "," + j);
 					waterCells++;
 				}
 			}
@@ -153,11 +148,6 @@ public class MyPadding implements Padding {
 					road.add(new Cell(row.getRoadLocation(), i));
 				}
 			}
-			/*
-			 * if (extend == true) { if (land.unoccupied(row.getRoadLocation(),
-			 * colLeft)) { road.add(new Cell(row.getRoadLocation(), colLeft)); }
-			 * }
-			 */
 		}
 		int parksize = 0;
 		if (row.getParkLocation() > 0 && row.getParkLocation() < 50 && isStraight < 4) {
@@ -171,7 +161,7 @@ public class MyPadding implements Padding {
 				parksize++;
 			}
 			int col = colLeft;
-			while (parksize < 4) {
+			while (parksize < 4&&col>=0) {
 				if (land.unoccupied(row.getParkLocation(), col)) {
 					park.add(new Cell(row.getParkLocation(), col));
 				}
@@ -186,15 +176,15 @@ public class MyPadding implements Padding {
 
 		}
 
-
-		System.out.println("Building location:"+row.getStart() + "," + location);getClass();
+/*		System.out.println("Building location:" + row.getStart() + "," + location);
+		getClass();
 		System.out.println("Building:");
 		printCells(request.rotations()[rotation].iterator());
 		System.out.println("Water:");
 		printCells(water);
 		System.out.println("Road:");
-		printCells(road);
-		
+		printCells(road);*/
+
 		row.setCurrentLocation(location - 1);
 		return new Move(true, request, new Cell(row.getStart(), location), rotation, road, water, park);
 	}
@@ -234,6 +224,7 @@ public class MyPadding implements Padding {
 			System.out.println(temp.i + "," + temp.j);
 		}
 	}
+
 	public void printCells(Iterator<Cell> iter) {
 		while (iter.hasNext()) {
 			Cell temp = iter.next();
