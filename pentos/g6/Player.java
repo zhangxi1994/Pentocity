@@ -5,8 +5,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import com.sun.xml.internal.bind.v2.runtime.Location;
-
 import pentos.sim.Building;
 import pentos.sim.Building.Type;
 import pentos.sim.Cell;

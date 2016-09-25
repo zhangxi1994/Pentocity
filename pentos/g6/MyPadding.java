@@ -51,9 +51,9 @@ public class MyPadding implements Padding {
 			else if (previousCol == temp.j)
 				isStraight++;
 			System.out.println(
-					"Budling Cell---" + (temp.i + row.getStart()) + "," + (row.getCurrentLocation() - colMax + temp.j));
+					"Budling Cell---" + (temp.i + row.getStart()) + "," + (location+ temp.j));
 		}
-		for (int i = rowBottom - 1, j = colLeft + 1; i >= rowTop && waterCells < 4 && isStraight < 4; i--) {
+		for (int i = row.getEnd()-1, j = location; i >= rowTop && waterCells < 4 && isStraight < 4; i--) {
 			// System.out.println(i+","+j+","+colLeft);
 			if (hasCell[i][j] == 0 && land.unoccupied(i, j) && waterCells < 4) {
 				water.add(new Cell(i, j));
