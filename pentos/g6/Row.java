@@ -12,6 +12,7 @@ public class Row {
 	private int currentLocation;
 	private int roadLocation;
 	private int parkLocation;
+	private int parkSize;
 	
 	private boolean recentlyPadded;
 
@@ -24,6 +25,7 @@ public class Row {
 		this.buildings = new HashSet<Building>();
 		this.roadLocation = roadLocation;
 		this.parkLocation = Integer.MAX_VALUE; // Never used
+		this.parkSize = 0;
 	}
 	
 	public Row(int start, int end,int roadLocation, int parkLocation, int currentLocation) {
@@ -33,6 +35,7 @@ public class Row {
 		this.buildings = new HashSet<Building>();
 		this.roadLocation = roadLocation;
 		this.parkLocation = parkLocation;
+		this.parkSize = 0;
 	}
 	
 	public int size() {
@@ -57,6 +60,12 @@ public class Row {
 	
 	public int getParkLocation() {
 		return parkLocation;
+	}
+	public int getParkSize(){
+		return parkSize;
+	}
+	public void setParkSize(int size){
+		parkSize = size;
 	}
 	
 	public void setCurrentLocation(int currentLocation) {
