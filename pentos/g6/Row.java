@@ -64,6 +64,6 @@ public class Row {
 	public String toString() {
 		return "Row from " + start + " to " + end
 				+ ". Road at " + roadLocation
-				+ ", and park at " + parkLocation;
+				+ " and park at " + parkLocation;
 	}
 }

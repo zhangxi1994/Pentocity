@@ -17,7 +17,7 @@ public class Player implements pentos.sim.Player {
 
 	private static int[] numFactoryRowsPerSize = { 5, 4, 3, 2 };
 	private static int factoryRowSizeShift = 2;
-	private static int[] numResidenceRowsPerSize = { 9, 3 };
+	private static int[] numResidenceRowsPerSize = { 6, 4, 1 };
 	private static int residenceRowSizeShift = 3;
 	
 	private HashMap<Integer, Set<Row>> factoryRows = new HashMap<Integer, Set<Row>>();
@@ -37,7 +37,7 @@ public class Player implements pentos.sim.Player {
 		int currentRow = 0;
 		int rowNumber= 0;
 		for (int i = 0; i < numFactoryRowsPerSize.length; ++i) {
-			for (int j = 0; j < numFactoryRowsPerSize[i]; j++) {
+			for (int j = 0; j < numFactoryRowsPerSize[i]; ++j) {
 				int roadLocation;
 				if(rowNumber % 2 == 0) {
 					roadLocation = currentRow - 1;
@@ -65,7 +65,7 @@ public class Player implements pentos.sim.Player {
 		int currentRow = 0;
 		int rowNumber= 0;
 		for (int i = 0; i < numResidenceRowsPerSize.length; ++i) {
-			for (int j = 0; j < numResidenceRowsPerSize[i]; j++) {
+			for (int j = 0; j < numResidenceRowsPerSize[i]; ++j) {
 				int roadLocation, parkLocation;
 				if(rowNumber % 2 == 0) {
 					roadLocation = currentRow - 1;
