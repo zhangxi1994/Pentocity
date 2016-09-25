@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-
 import pentos.sim.Building;
 import pentos.sim.Building.Type;
 import pentos.sim.Cell;
@@ -212,11 +211,17 @@ public class Player implements pentos.sim.Player {
 		int rotation = 0;
 		int minCellsOnLeft = Integer.MAX_VALUE;
 		boolean is4 = false;
+		boolean is5 = false;
 		Building[] rotations = request.rotations();
 		for (int i = 0; i < rotations.length; ++i) {
 			int[] residenceDimensions = getBuildingDimensions(rotations[i]);
-			if(residenceDimensions[0] >= 4) {
-				// Size 4 or more
+			if (residenceDimensions[0] == 5) {
+				// If size 5, use this rotation
+				is5 = true;
+				rotation = i;
+				break;
+			} else if(residenceDimensions[0] == 4) {
+				// Size 4
 				int leftColumnCells = countCellsOnLeft(rotations[i]);
 				if (is4) {
 					if (leftColumnCells < minCellsOnLeft) {
@@ -243,7 +248,9 @@ public class Player implements pentos.sim.Player {
 			}
 		}
 		Set<Row> possibleRows;
-		if (is4) {
+		if (is5) {
+			possibleRows = residenceRows.get(5);
+		}else if (is4) {
 			possibleRows = residenceRows.get(4);
 		} else {
 			possibleRows = residenceRows.get(3);
@@ -272,7 +279,14 @@ public class Player implements pentos.sim.Player {
 		
 		// All decided, now generate the complete move
 		Padding padding = new MyPadding();
-		Move move = padding.getPadding(request, rotation, land, bestRow, bestLocation);
+		Move move;
+		if (bestRow.getRecentlyPadded()) {
+			move = padding.getPadding(request, rotation, land, bestRow, bestLocation, false);
+			bestRow.setWasNotRecentlyPadded();
+		} else {
+			move = padding.getPadding(request, rotation, land, bestRow, bestLocation, true);
+			bestRow.setWasRecentlyPadded();
+		}
 		if(!land.buildable(move.request.rotations()[move.rotation], move.location)) {
 			System.out.println("***Cannot build***"+move.location.i+","+move.location.j);
 		}
