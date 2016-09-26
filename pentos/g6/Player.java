@@ -18,6 +18,7 @@ public class Player implements pentos.sim.Player {
 	private static int factoryRowSizeShift = 2;
 	private static int[] numResidenceRowsPerSize = { 6, 4, 1 };
 	private static int residenceRowSizeShift = 3;
+	private static int rejectNum = 0;
 	
 	private HashMap<Integer, Set<Row>> factoryRows = new HashMap<Integer, Set<Row>>();
 	private HashMap<Integer, Set<Row>> residenceRows = new HashMap<Integer, Set<Row>>();
@@ -94,12 +95,20 @@ public class Player implements pentos.sim.Player {
 	@Override
 	public Move play(Building request, Land land) {
 
+		if(rejectNum==2){
+			DummyPlayer player = new DummyPlayer();
+			return player.play(request, land);
+		}
 		if(request.getType() == Type.FACTORY){
-			return generateFactoryMove(request, land);
+			Move move = generateFactoryMove(request, land);
+			if(move.accept==false) rejectNum++;
+			return move;
 			
 		} else {
 			// Received request for residence
-			return generateResidenceMove(request, land);
+			Move move = generateResidenceMove(request, land);
+			if(move.accept==false) rejectNum++;
+			return move;
 		}
 	}
 	
@@ -303,7 +312,7 @@ public class Player implements pentos.sim.Player {
 		if(!land.buildable(move.request.rotations()[move.rotation], move.location)) {
 			System.out.println("***Cannot build***"+move.location.i+","+move.location.j);
 		}
-		//System.out.println(move.location.i+","+move.location.j);
+		System.out.println(move.location.i+","+move.location.j);
 		//System.out.println("***Can build***");
 		return move;
 	}

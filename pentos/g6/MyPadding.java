@@ -157,9 +157,9 @@ public class MyPadding implements Padding {
 					park.add(new Cell(row.getParkLocation(), i));
 					row.setParkSize(row.getParkSize()+1);
 				}
-				if (land.unoccupied(row.getRoadLocation(), i)) {
+				/*if (land.unoccupied(row.getRoadLocation(), i)) {
 					road.add(new Cell(row.getRoadLocation(), i));
-				}
+				}*/
 			}
 			int col = colLeft;
 			while (row.getParkSize() < 4 && col >= 0) {
@@ -168,20 +168,20 @@ public class MyPadding implements Padding {
 					row.setParkSize(row.getParkSize()+1);
 				}
 
-				if (land.unoccupied(row.getRoadLocation(), col)) {
+				/*if (land.unoccupied(row.getRoadLocation(), col)) {
 					road.add(new Cell(row.getRoadLocation(), col));
-				}
+				}*/
 				col--;
 			}
 		}
 
-		/*
-		 * System.out.println("Building location:" + row.getStart() + "," +
-		 * location); getClass(); System.out.println("Building:");
-		 * printCells(request.rotations()[rotation].iterator());
-		 * System.out.println("Water:"); printCells(water);
-		 * System.out.println("Road:"); printCells(road);
-		 */
+		
+		  System.out.println("Building location:" + row.getStart() + "," +
+		  location); getClass(); System.out.println("Building:");
+		  printCells(request.rotations()[rotation].iterator());
+		  System.out.println("Water:"); printCells(water);
+		  System.out.println("Road:"); printCells(road);
+		
 
 		row.setCurrentLocation(location - 1);
 		return new Move(true, request, new Cell(row.getStart(), location), rotation, road, water, park);
