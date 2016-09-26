@@ -120,13 +120,13 @@ public class MyPadding implements Padding {
 
 			if (waterCells < 4 && isStraight < 4) {
 				if (rowBottom - 1 >= 0 && colLeft >= 0 && checkValidWaterCell(new Cell(rowBottom - 1, colLeft))) {
-					for (int i = rowBottom - 1, j = colLeft; i >= rowTop && waterCells < 4 && j >= 0; i--) {
+					for (int i = rowBottom - 1, j = colLeft; i >= rowTop && waterCells < 4 && j >= 0&&land.unoccupied(i,j); i--) {
 						water.add(new Cell(i, j));
 						// System.out.println("Water Cell:" + i + "," + j);
 						waterCells++;
 					}
 				} else {
-					for (int i = rowTop, j = colLeft; i < rowBottom && waterCells < 4 && j >= 0; i++) {
+					for (int i = rowTop, j = colLeft; i < rowBottom && waterCells < 4 && j >= 0&&land.unoccupied(i,j); i++) {
 						water.add(new Cell(i, j));
 						// System.out.println("Water Cell:" + i + "," + j);
 						waterCells++;

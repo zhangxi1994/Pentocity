@@ -96,8 +96,17 @@ public class Player implements pentos.sim.Player {
 	public Move play(Building request, Land land) {
 
 		if(rejectNum==2){
-			DummyPlayer player = new DummyPlayer();
-			return player.play(request, land);
+			Move move;
+			if(request.getType() == Type.FACTORY){
+				move = generateFactoryMove(request, land);			
+			} else {
+				move = generateResidenceMove(request, land);
+			}
+			if(move.accept==true){
+				return move;
+			}
+			DummyPlayer dummyplayer = new DummyPlayer();
+			return dummyplayer.play(request, land);
 		}
 		if(request.getType() == Type.FACTORY){
 			Move move = generateFactoryMove(request, land);
