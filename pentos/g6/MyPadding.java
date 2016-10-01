@@ -29,12 +29,12 @@ public class MyPadding implements Padding {
 	}
 
 	@Override
-	public Move getPadding(Building request, int rotation, Land land, Row row, int location, boolean buildWater) {
+	public Move getPadding(Building request, int rotation, Land land, Row row, int location, boolean buildWater, int offSet) {
 		getBuildingDetails(request.rotations()[rotation].iterator(), row);
 		Iterator<Cell> iter = request.rotations()[rotation].iterator();
 		colLeft = location - 1; // exclusive
 		colRight = location + width - 1; // inclusive
-		rowTop = row.getStart();
+		rowTop = row.getStart() + offSet;
 		rowBottom = row.getEnd(); // cannot equal to
 		int waterCells = 0;
 		Set<Cell> water = new HashSet<>();
@@ -45,22 +45,15 @@ public class MyPadding implements Padding {
 		boolean extend = false;
 		while (iter.hasNext()) {
 			Cell temp = iter.next();
-			hasCell[temp.i + row.getStart()][location + temp.j] = 2;
+			hasCell[temp.i + rowTop][location + temp.j] = 2;
 			if (previousCol == -1)
 				previousCol = temp.j;
 			else if (previousCol == temp.j)
 				isStraight++;
-			// System.out.println("Budling Cell---" + (temp.i + row.getStart())
-			// + "," + (location + temp.j));
 		}
-		for (int i = row.getEnd() - 1, j = location; i >= rowTop && waterCells < 4 && isStraight < 4; i--) {
-			/*
-			 * System.out.println( "Budling Cell---" + (temp.i + row.getStart())
-			 * + "," + (row.getCurrentLocation() - colMax + temp.j));
-			 */
-		}
+		
 		if (buildWater) {
-			for (int i = row.getEnd() - 1, j = location; i >= rowTop && waterCells < 4 && isStraight < 4; i--) {
+			for (int i = row.getEnd() - 1, j = location; i >= row.getStart() && waterCells < 4 && isStraight < 4; i--) {
 				// System.out.println(i+","+j+","+colLeft);
 				if (hasCell[i][j] == 0 && land.unoccupied(i, j) && waterCells < 4) {
 					water.add(new Cell(i, j));
@@ -75,14 +68,14 @@ public class MyPadding implements Padding {
 					hasCell[i][j + 1] = 1;
 					waterCells++;
 				}
-				if (i - 1 >= rowTop && hasCell[i - 1][j] == 0 && land.unoccupied(i - 1, j) && waterCells < 4) {
+				if (i - 1 >= row.getStart() && hasCell[i - 1][j] == 0 && land.unoccupied(i - 1, j) && waterCells < 4) {
 					water.add(new Cell(i - 1, j));
 					// System.out.println("Water Cell:" + (i - 1) + "," + j);
 					hasCell[i - 1][j] = 1;
 					waterCells++;
 				}
 
-				if (i - 1 >= rowTop && j + 1 < 50 && j + 1 <= colRight && hasCell[i - 1][j + 1] == 0
+				if (i - 1 >= row.getStart() && j + 1 < 50 && j + 1 <= colRight && hasCell[i - 1][j + 1] == 0
 						&& land.unoccupied(i - 1, j + 1) && waterCells < 4) {
 					water.add(new Cell(i - 1, j + 1));
 					// System.out.println("Water Cell:" + (i - 1) + "," + (j +
@@ -120,13 +113,13 @@ public class MyPadding implements Padding {
 
 			if (waterCells < 4 && isStraight < 4) {
 				if (rowBottom - 1 >= 0 && colLeft >= 0 && checkValidWaterCell(new Cell(rowBottom - 1, colLeft))) {
-					for (int i = rowBottom - 1, j = colLeft; i >= rowTop && waterCells < 4 && j >= 0&&land.unoccupied(i,j); i--) {
+					for (int i = rowBottom - 1, j = colLeft; i >= row.getStart() && waterCells < 4 && j >= 0&&land.unoccupied(i,j); i--) {
 						water.add(new Cell(i, j));
 						// System.out.println("Water Cell:" + i + "," + j);
 						waterCells++;
 					}
 				} else {
-					for (int i = rowTop, j = colLeft; i < rowBottom && waterCells < 4 && j >= 0&&land.unoccupied(i,j); i++) {
+					for (int i = row.getStart(), j = colLeft; i < rowBottom && waterCells < 4 && j >= 0&&land.unoccupied(i,j); i++) {
 						water.add(new Cell(i, j));
 						// System.out.println("Water Cell:" + i + "," + j);
 						waterCells++;
@@ -176,7 +169,7 @@ public class MyPadding implements Padding {
 		}
 
 		
-		  System.out.println("Building location:" + row.getStart() + "," +
+		  System.out.println("Building location:" + rowTop + "," +
 		  location); getClass(); System.out.println("Building:");
 		  printCells(request.rotations()[rotation].iterator());
 		  System.out.println("Water:"); printCells(water);
@@ -184,7 +177,7 @@ public class MyPadding implements Padding {
 		
 
 		row.setCurrentLocation(location - 1);
-		return new Move(true, request, new Cell(row.getStart(), location), rotation, road, water, park);
+		return new Move(true, request, new Cell(rowTop, location), rotation, road, water, park);
 	}
 
 	public boolean checkValidWaterCell(Cell cell) {
