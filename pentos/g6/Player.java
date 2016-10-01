@@ -138,7 +138,7 @@ public class Player implements pentos.sim.Player {
 		while(bestRow==null && promotionBump <= 3){
 			promotionBump++;
 			//This is checking for the best row if you use the first dimension of the factory
-			if(factoryDimensions[0] + promotionBump <= 5){ //Gotta make sure it's a valid dimension request
+			if(factoryDimensions[0] + promotionBump >1 && factoryDimensions[0] + promotionBump <= 5){ //Gotta make sure it's a valid dimension request
 				for(Row row : factoryRows.get(factoryDimensions[0]+promotionBump)){
 					if(!factoryRowExtendable(row, land, request.rotations()[0])){
 						continue;
@@ -161,7 +161,7 @@ public class Player implements pentos.sim.Player {
 			}	
 			//This is checking for the best row if you use the second dimension of the factory
 			if(factoryDimensions[0]!=factoryDimensions[1]){ //This makes sure that Dim2 isn't the same as Dim1
-				if(factoryDimensions[1] + promotionBump <= 5){	//This makes sure it's a valid dimension request
+				if(factoryDimensions[1] + promotionBump >1 && factoryDimensions[1] + promotionBump <= 5){	//This makes sure it's a valid dimension request
 					for(Row row : factoryRows.get(factoryDimensions[1]+promotionBump)){
 						if(!factoryRowExtendable(row, land, request.rotations()[1])){
 							continue;
