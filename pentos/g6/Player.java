@@ -292,15 +292,58 @@ public class Player implements pentos.sim.Player {
 		
 		Building rotatedRequest = request.rotations()[rotation];
 		
+		int bestOffSet=0;
 		Row bestRow = null;
 		int bestLocation = Integer.MIN_VALUE;
 		for (Row row : possibleRows) {
-			int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest);
+			int offSet = 0;
+			int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest, offSet);
 			if (positionInRow >= 0 && positionInRow > bestLocation) {
 				bestLocation = positionInRow;
 				bestRow = row;
+				bestOffSet = offSet;
 			}
 		}
+		
+		//If you still didn't find anything and you were length 3, promote to 4
+		if(bestRow == null && !is4 && !is5){
+			possibleRows  = residenceRows.get(4);
+			for (Row row : possibleRows) {
+				int offSet = (row.getRoadLocation() > row.getStart()) ? 1 : 0;
+				int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest, offSet);
+				if (positionInRow >= 0 && positionInRow > bestLocation) {
+					bestLocation = positionInRow;
+					bestRow = row;
+					bestOffSet = offSet;
+				}
+			}
+			//If you still haven't found anything, promote to 5
+			if(bestRow==null){
+				possibleRows  = residenceRows.get(5);
+				for (Row row : possibleRows) {
+					int offSet = (row.getRoadLocation() > row.getStart()) ? 2 : 0;
+					int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest, offSet);
+					if (positionInRow >= 0 && positionInRow > bestLocation) {
+						bestLocation = positionInRow;
+						bestRow = row;
+						bestOffSet = offSet;
+					}
+				}
+			}
+		}
+		else if(bestRow==null && is4){//If you still didn't find anything and you were length 4
+			possibleRows  = residenceRows.get(5);
+			for (Row row : possibleRows) {
+				int offSet = (bestRow.getRoadLocation() > bestRow.getStart()) ? 1 : 0;
+				int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest, offSet);
+				if (positionInRow >= 0 && positionInRow > bestLocation) {
+					bestLocation = positionInRow;
+					bestRow = row;
+					bestOffSet = offSet;
+				}
+			}
+		}
+		
 		
 		// If it is still null, it means we didn't find the row to place it
 		if (bestRow == null) {
@@ -312,10 +355,10 @@ public class Player implements pentos.sim.Player {
 		Padding padding = new MyPadding();
 		Move move;
 		if (bestRow.getRecentlyPadded()) {
-			move = padding.getPadding(request, rotation, land, bestRow, bestLocation, false);
+			move = padding.getPadding(request, rotation, land, bestRow, bestLocation, false, bestOffSet);
 			bestRow.setWasNotRecentlyPadded();
 		} else {
-			move = padding.getPadding(request, rotation, land, bestRow, bestLocation, true);
+			move = padding.getPadding(request, rotation, land, bestRow, bestLocation, true, bestOffSet);
 			bestRow.setWasRecentlyPadded();
 		}
 		if(!land.buildable(move.request.rotations()[move.rotation], move.location)) {
@@ -460,14 +503,14 @@ public class Player implements pentos.sim.Player {
 		return null;
 	}
 
-	private static int residenceRowExtendPosition(Land land, Row row, Building residence) {
+	private static int residenceRowExtendPosition(Land land, Row row, Building residence, int offSet) {
 		if (residence.getType() != Type.RESIDENCE) {
 			throw new RuntimeException("Incorrect building type inputted.");
 		}
 		
 		int position = row.getCurrentLocation();
 		while (position >= 0) {
-			if(land.buildable(residence, new Cell(row.getStart(), position))) {
+			if(land.buildable(residence, new Cell(row.getStart()+offSet, position))) {
 				return position;
 			}
 			position--;
