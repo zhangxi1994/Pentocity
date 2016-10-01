@@ -113,20 +113,22 @@ public class MyPadding implements Padding {
 					if (!checkValidWaterCell(iterator.next())) {
 						waterCells--;
 						iterator.remove();
-						//System.out.println("water cell remove");
+						// System.out.println("water cell remove");
 					}
 				}
 			}
 
 			if (waterCells < 4 && isStraight < 4) {
 				if (rowBottom - 1 >= 0 && colLeft >= 0 && checkValidWaterCell(new Cell(rowBottom - 1, colLeft))) {
-					for (int i = rowBottom - 1, j = colLeft; i >= rowTop && waterCells < 4 && j >= 0&&land.unoccupied(i,j); i--) {
+					for (int i = rowBottom - 1, j = colLeft; i >= rowTop && waterCells < 4 && j >= 0
+							&& land.unoccupied(i, j); i--) {
 						water.add(new Cell(i, j));
 						// System.out.println("Water Cell:" + i + "," + j);
 						waterCells++;
 					}
 				} else {
-					for (int i = rowTop, j = colLeft; i < rowBottom && waterCells < 4 && j >= 0&&land.unoccupied(i,j); i++) {
+					for (int i = rowTop, j = colLeft; i < rowBottom && waterCells < 4 && j >= 0
+							&& land.unoccupied(i, j); i++) {
 						water.add(new Cell(i, j));
 						// System.out.println("Water Cell:" + i + "," + j);
 						waterCells++;
@@ -155,33 +157,39 @@ public class MyPadding implements Padding {
 			for (int i = row.getCurrentLocation(); i >= location; i--) {
 				if (land.unoccupied(row.getParkLocation(), i)) {
 					park.add(new Cell(row.getParkLocation(), i));
-					row.setParkSize(row.getParkSize()+1);
+					row.setParkSize(row.getParkSize() + 1);
+					// System.out.println("park size:" + row.getParkSize() + ","
+					// +row.getParkLocation()+"," +i);
 				}
-				/*if (land.unoccupied(row.getRoadLocation(), i)) {
-					road.add(new Cell(row.getRoadLocation(), i));
-				}*/
+				/*
+				 * if (land.unoccupied(row.getRoadLocation(), i)) { road.add(new
+				 * Cell(row.getRoadLocation(), i)); }
+				 */
 			}
 			int col = colLeft;
 			while (row.getParkSize() < 4 && col >= 0) {
 				if (land.unoccupied(row.getParkLocation(), col)) {
 					park.add(new Cell(row.getParkLocation(), col));
-					row.setParkSize(row.getParkSize()+1);
+					row.setParkSize(row.getParkSize() + 1);
+					System.out.println("park size:" + row.getParkSize() + "," + row.getParkLocation() + "," + col);
 				}
 
-				/*if (land.unoccupied(row.getRoadLocation(), col)) {
+				if (land.unoccupied(row.getRoadLocation(), col)) {
 					road.add(new Cell(row.getRoadLocation(), col));
-				}*/
+				}
+
 				col--;
 			}
 		}
 
-		
-		  System.out.println("Building location:" + row.getStart() + "," +
-		  location); getClass(); System.out.println("Building:");
-		  printCells(request.rotations()[rotation].iterator());
-		  System.out.println("Water:"); printCells(water);
-		  System.out.println("Road:"); printCells(road);
-		
+		// System.out.println("Building location:" + row.getStart() + "," +
+		// location);
+		// getClass();
+		// System.out.println("Building:");
+		// printCells(request.rotations()[rotation].iterator());
+		// System.out.println("Water:"); printCells(water);
+		System.out.println("Park:");
+		printCells(park);
 
 		row.setCurrentLocation(location - 1);
 		return new Move(true, request, new Cell(row.getStart(), location), rotation, road, water, park);

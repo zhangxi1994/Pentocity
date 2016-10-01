@@ -321,7 +321,7 @@ public class Player implements pentos.sim.Player {
 		if(!land.buildable(move.request.rotations()[move.rotation], move.location)) {
 			System.out.println("***Cannot build***"+move.location.i+","+move.location.j);
 		}
-		System.out.println(move.location.i+","+move.location.j);
+		//System.out.println(move.location.i+","+move.location.j);
 		//System.out.println("***Can build***");
 		return move;
 	}
