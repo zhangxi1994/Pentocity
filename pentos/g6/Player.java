@@ -20,6 +20,7 @@ public class Player implements pentos.sim.Player {
 		LINE, L_FACE, R_FACE, INV_L, L, R_BLK, L_BLK, INV_LIGHTNING, LIGHTNING, T, U, RANGLE, STEPS, PLUS, L_TOTEM, R_TOTEM, INV_Z, Z
 	};
 
+
 	int numberOfRejections = 0; // Counts the number of rejections.
 
 	@Override
