@@ -29,13 +29,14 @@ public class MyPadding implements Padding {
 	}
 
 	@Override
-	public Move getPadding(Building request, int rotation, Land land, Row row, int location, boolean buildWater, int offSet) {
+	public Move getPadding(Building request, int rotation, Land land, Row row, int location, boolean buildWater,
+			int offSet) {
 		getBuildingDetails(request.rotations()[rotation].iterator(), row);
 		Iterator<Cell> iter = request.rotations()[rotation].iterator();
 		colLeft = location - 1; // exclusive
 		colRight = location + width - 1; // inclusive
-		rowTop = row.getStart() + offSet;
-		rowBottom = row.getEnd(); // cannot equal to
+		rowTop = row.getStart() + offSet;//inclusive
+		rowBottom = row.getEnd(); // exclusive
 		int waterCells = 0;
 		Set<Cell> water = new HashSet<>();
 		Set<Cell> park = new HashSet<>();
@@ -50,8 +51,13 @@ public class MyPadding implements Padding {
 			else if (previousCol == temp.j)
 				isStraight++;
 		}
-		
+		boolean buildwater = false;
+		for(int i = row.getEnd() - 1, j = location;i >= row.getStart()&&buildWater;i--){
+			if(hasCell[i][j]==0) buildwater = true;
+		}
+		buildWater = buildwater;
 		if (buildWater) {
+			// starts from bottom left corner
 			for (int i = row.getEnd() - 1, j = location; i >= row.getStart() && waterCells < 4 && isStraight < 4; i--) {
 				if (hasCell[i][j] == 0 && land.unoccupied(i, j) && waterCells < 4) {
 					water.add(new Cell(i, j));
@@ -91,26 +97,72 @@ public class MyPadding implements Padding {
 					waterCells++;
 				}
 			}
-			// check valid water cell
+			// remove useless water cell
 			if (water.size() > 2) {
 				for (Iterator<Cell> iterator = water.iterator(); iterator.hasNext();) {
-					if (!checkValidWaterCell(iterator.next())) {
+					if (!isValid(iterator.next())) {
 						waterCells--;
 						iterator.remove();
 					}
 				}
 			}
 
+			boolean bottomUp = true;
+			int currentRowLocation = rowBottom - 1;
 			if (waterCells < 4 && isStraight < 4) {
-				if (rowBottom - 1 >= 0 && colLeft >= 0 && checkValidWaterCell(new Cell(rowBottom - 1, colLeft))) {
-					for (int i = rowBottom - 1, j = colLeft; i >= row.getStart() && waterCells < 4 && j >= 0&&land.unoccupied(i,j); i--) {
-						water.add(new Cell(i, j));
-						waterCells++;
+				if (rowBottom - 1 >= 0 && colLeft >= 0 && isValid(new Cell(rowBottom - 1, colLeft))) {
+					for (int i = rowBottom - 1, j = colLeft; i >= row.getStart() && waterCells < 4 && j >= 0
+							&& land.unoccupied(i, j); i--) {
+						if (hasCell[i][j] == 0) {
+							water.add(new Cell(i, j));
+							hasCell[i][j] = 1;
+							waterCells++;
+							currentRowLocation = i;
+						}
+
 					}
 				} else {
-					for (int i = row.getStart(), j = colLeft; i < rowBottom && waterCells < 4 && j >= 0&&land.unoccupied(i,j); i++) {
-						water.add(new Cell(i, j));
-						waterCells++;
+					for (int i = row.getStart(), j = colLeft; i < rowBottom && waterCells < 4 && j >= 0
+							&& land.unoccupied(i, j); i++) {
+						if (hasCell[i][j] == 0) {
+							{
+								water.add(new Cell(i, j));
+								hasCell[i][j] = 1;
+								waterCells++;
+								currentRowLocation = i;
+							}
+
+						}
+						bottomUp = false;
+					}
+				}
+			}
+			// remove useless water cell again
+			for (Iterator<Cell> iterator = water.iterator(); iterator.hasNext();) {
+				if (!isValid(iterator.next())) {
+					waterCells--;
+					iterator.remove();
+				}
+			}
+			if (waterCells < 4 && isStraight < 4) {
+				if (bottomUp) {
+					for (int i = currentRowLocation - 1, j = colLeft; i >= row.getStart() && waterCells < 4 && j >= 0
+							&& land.unoccupied(i, j); i--) {
+						if (hasCell[i][j] == 0) {
+							water.add(new Cell(i, j));
+							hasCell[i][j] = 1;
+							waterCells++;
+						}
+
+					}
+				} else {
+					for (int i = currentRowLocation + 1, j = colLeft; i < rowBottom && waterCells < 4 && j >= 0
+							&& land.unoccupied(i, j); i++) {
+						if (hasCell[i][j] == 0) {
+							water.add(new Cell(i, j));
+							hasCell[i][j] = 1;
+							waterCells++;
+						}
 					}
 				}
 			}
@@ -133,7 +185,7 @@ public class MyPadding implements Padding {
 				}
 			}
 			int col = colLeft;
-			while (row.getParkSize() < 4 && col >= 0&&location>46&&land.unoccupied(row.getParkLocation(),46)) {
+			while (row.getParkSize() < 4 && col >= 0 && location > 46 && land.unoccupied(row.getParkLocation(), 46)) {
 				if (land.unoccupied(row.getParkLocation(), col)) {
 					park.add(new Cell(row.getParkLocation(), col));
 					row.setParkSize(row.getParkSize() + 1);
@@ -148,7 +200,7 @@ public class MyPadding implements Padding {
 		return new Move(true, request, new Cell(rowTop, location), rotation, road, water, park);
 	}
 
-	public boolean checkValidWaterCell(Cell cell) {
+	public boolean isValid(Cell cell) {
 		int i = cell.i;
 		int j = cell.j;
 		int count = 0;

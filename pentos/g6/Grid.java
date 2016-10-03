@@ -11,7 +11,7 @@ public class Grid {
 	private static int factoryRowSizeShift = 2;
 	private static int[] numResidenceRowsPerSize = { 6, 4, 1 };
 	private static int residenceRowSizeShift = 3;
-	// private static int factoryRowCurrentPosition = 0;// starts from bottom
+	//private static int factoryRowCurrentPosition = 0;// starts from bottom
 	private static int factoryRowCurrentPosition = 49;// starts from bottom
 	private static int residenceRowCurrentPosition = 0;// starts from top
 	private static int previousRowType = 0;// 1 means park, 0 means road
@@ -26,9 +26,8 @@ public class Grid {
 		if (rowType == 1) {
 			if (factoryRowCurrentPosition < 0)
 				return false; // grid full
-			/*
-			 * if(factoryRowCurrentPosition>49) return false; //
-			 */
+			  //if(factoryRowCurrentPosition>49) return false; //
+			 
 		} else {
 			if (residenceRowCurrentPosition > 49)
 				return false; // grid full
