@@ -70,7 +70,7 @@ public class Player implements pentos.sim.Player {
 
 		int[] factoryDimensions = getBuildingDimensions(request);
 
-		System.out.println("Factory Request: " + factoryDimensions[0] + "\t" + factoryDimensions[1]);
+		System.out.println("Factory Request: " + factoryDimensions[0] + " " + factoryDimensions[1]);
 
 		Row bestRow = null;
 		int minLength = -1;
@@ -157,7 +157,7 @@ public class Player implements pentos.sim.Player {
 		int yLoc = (bestRow.getRoadLocation() > bestRow.getStart()) ? bestRow.getStart() + promotionBump
 				: bestRow.getStart();
 		// int yLoc = bestRow.getStart();
-		System.out.println("Placing at " + bestRow.getCurrentLocation() + ", " + yLoc);
+		System.out.println("Building factory at " + bestRow.getCurrentLocation() + ", " + yLoc);
 		Cell location = new Cell(yLoc, bestRow.getCurrentLocation());
 		int rotation = (rotate) ? 1 : 0;
 
@@ -399,7 +399,7 @@ public class Player implements pentos.sim.Player {
 		if (!land.buildable(move.request.rotations()[move.rotation], move.location)) {
 			System.out.println("***Cannot build***" + move.location.i + "," + move.location.j);
 		}
-		System.out.println("Building at " + move.location.i + "," + move.location.j);
+		System.out.println("Building residence at " + move.location.i + "," + move.location.j);
 		// System.out.println("***Can build***");
 		return move;
 	}
