@@ -43,6 +43,8 @@ public class Player implements pentos.sim.Player {
 			if (move.accept == true) {
 				return move;
 			}
+			//pentos.g3.Player player3 = new pentos.g3.Player();
+			//return player3.play(request, land);
 			DummyPlayer dummyplayer = new DummyPlayer();
 			return dummyplayer.play(request, land);
 		}
@@ -186,8 +188,9 @@ public class Player implements pentos.sim.Player {
 		// Update currentLocation!
 		bestRow.setCurrentLocation((rotate) ? bestRow.getCurrentLocation() + factoryDimensions[0]
 				: bestRow.getCurrentLocation() + factoryDimensions[1]);
+		/*if(land.buildable(request, location)) return new Move(accept, request, location, rotation, road, water, park);
+		else return new Move(false);*/
 		return new Move(accept, request, location, rotation, road, water, park);
-
 	}
 
 	private Move generateResidenceMove(Building request, Land land) {
