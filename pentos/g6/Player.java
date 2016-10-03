@@ -3,6 +3,7 @@ package pentos.g6;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Set;
 
 import pentos.sim.Building;
@@ -139,14 +140,7 @@ public class Player implements pentos.sim.Player {
 			promotionBump++;
 			// This is checking for the best row if you use the first dimension
 			// of the factory
-			if (factoryDimensions[0] + promotionBump > 1 && factoryDimensions[0] + promotionBump <= 5) { // Gotta
-																											// make
-																											// sure
-																											// it's
-																											// a
-																											// valid
-																											// dimension
-																											// request
+			if (factoryDimensions[0] + promotionBump > 1 && factoryDimensions[0] + promotionBump <= 5) { 
 				for (Row row : factoryRows.get(factoryDimensions[0] + promotionBump)) {
 					if (!factoryRowExtendable(row, land, request.rotations()[0])) {
 						continue;
@@ -172,14 +166,7 @@ public class Player implements pentos.sim.Player {
 																// Dim2 isn't
 																// the same as
 																// Dim1
-				if (factoryDimensions[1] + promotionBump > 1 && factoryDimensions[1] + promotionBump <= 5) { // This
-																												// makes
-																												// sure
-																												// it's
-																												// a
-																												// valid
-																												// dimension
-																												// request
+				if (factoryDimensions[1] + promotionBump > 1 && factoryDimensions[1] + promotionBump <= 5) {
 					for (Row row : factoryRows.get(factoryDimensions[1] + promotionBump)) {
 						if (!factoryRowExtendable(row, land, request.rotations()[1])) {
 							continue;
@@ -253,42 +240,29 @@ public class Player implements pentos.sim.Player {
 		 * now If one of the dimensions is size 4 or more, prefer that as the
 		 * height
 		 */
-		int rotation = 0;
-		int minCellsOnLeft = Integer.MAX_VALUE;
 		boolean is4 = false;
 		boolean is5 = false;
+		LinkedList<Integer> validRotations = new LinkedList<>();
 		Building[] rotations = request.rotations();
 		for (int i = 0; i < rotations.length; ++i) {
 			int[] residenceDimensions = getBuildingDimensions(rotations[i]);
 			if (residenceDimensions[0] == 5) {
 				// If size 5, use this rotation
 				is5 = true;
-				rotation = i;
+				validRotations = new LinkedList<>();
+				validRotations.add(i);
 				break;
 			} else if (residenceDimensions[0] == 4) {
 				// Size 4
-				int leftColumnCells = countCellsOnLeft(rotations[i]);
-				if (is4) {
-					if (leftColumnCells < minCellsOnLeft) {
-						minCellsOnLeft = leftColumnCells;
-						rotation = i;
-					}
-				} else {
+				if (!is4) {
 					is4 = true;
-					rotation = i;
-					minCellsOnLeft = leftColumnCells;
+					validRotations = new LinkedList<>();
 				}
-			} else {
+				validRotations.add(i);
+			} else if (residenceDimensions[0] == 3) {
 				// Size 3 or less
-				if (is4) {
-					// Forget this rotation
-				} else if (residenceDimensions[0] == 3) {
-					// Only consider height 3s
-					int leftColumnCells = countCellsOnLeft(rotations[i]);
-					if (leftColumnCells < minCellsOnLeft) {
-						minCellsOnLeft = leftColumnCells;
-						rotation = i;
-					}
+				if (!is4) {
+					validRotations.add(i);
 				}
 			}
 		}
@@ -306,19 +280,43 @@ public class Player implements pentos.sim.Player {
 		 * in
 		 */
 
-		Building rotatedRequest = request.rotations()[rotation];
-
 		int bestOffSet = 0;
 		Row bestRow = null;
 		int bestLocation = Integer.MIN_VALUE;
-		for (Row row : possibleRows) {
-			int offSet = 0;
-			int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest, offSet);
-			if (positionInRow >= 0 && positionInRow > bestLocation) {
-				bestLocation = positionInRow;
-				bestRow = row;
-				bestOffSet = offSet;
+		int bestRotation = -1;
+		int leastLeftCells = Integer.MAX_VALUE;
+		for (int rotation : validRotations) {
+			Building rotatedRequest = request.rotations()[rotation];
+			for (Row row : possibleRows) {
+				int offSet = 0;
+				int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest, offSet);
+				if (positionInRow >= 0) {
+					if (positionInRow > bestLocation) {
+						bestLocation = positionInRow;
+						bestRow = row;
+						bestOffSet = offSet;
+						bestRotation = rotation;
+						leastLeftCells = countCellsOnLeft(rotatedRequest);
+					} else if (positionInRow == bestLocation) {
+						int leftCells = countCellsOnLeft(rotatedRequest);
+						if (leftCells < leastLeftCells) {
+							bestLocation = positionInRow;
+							bestRow = row;
+							bestOffSet = offSet;
+							bestRotation = rotation;
+							leastLeftCells = leftCells;
+						}
+					}
+				}
 			}
+		}
+		
+		Building rotatedRequest;
+		if (bestRotation != -1) {
+			rotatedRequest = request.rotations()[bestRotation];
+		} else {
+			rotatedRequest = request.rotations()[validRotations.get(0)];
+			bestRotation = validRotations.get(0);
 		}
 
 		// If you still didn't find anything and you were length 3, promote to 4
@@ -370,16 +368,16 @@ public class Player implements pentos.sim.Player {
 		Padding padding = new MyPadding();
 		Move move;
 		if (bestRow.getRecentlyPadded()) {
-			move = padding.getPadding(request, rotation, land, bestRow, bestLocation, false, bestOffSet);
+			move = padding.getPadding(request, bestRotation, land, bestRow, bestLocation, false, bestOffSet);
 			bestRow.setWasNotRecentlyPadded();
 		} else {
-			move = padding.getPadding(request, rotation, land, bestRow, bestLocation, true, bestOffSet);
+			move = padding.getPadding(request, bestRotation, land, bestRow, bestLocation, true, bestOffSet);
 			bestRow.setWasRecentlyPadded();
 		}
 		if (!land.buildable(move.request.rotations()[move.rotation], move.location)) {
 			System.out.println("***Cannot build***" + move.location.i + "," + move.location.j);
 		}
-		System.out.println(move.location.i + "," + move.location.j);
+		System.out.println("Building at " + move.location.i + "," + move.location.j);
 		// System.out.println("***Can build***");
 		return move;
 	}
