@@ -16,6 +16,8 @@ public class MyPadding implements Padding {
 	private int colMin = Integer.MAX_VALUE;
 	private int colMax = Integer.MIN_VALUE;
 	private int width = Integer.MIN_VALUE;
+	private int rowMaxCol = Integer.MIN_VALUE;
+	private int rowMinCol = Integer.MIN_VALUE;
 	int colLeft;
 	int colRight;
 	int rowTop;
@@ -35,7 +37,7 @@ public class MyPadding implements Padding {
 		Iterator<Cell> iter = request.rotations()[rotation].iterator();
 		colLeft = location - 1; // exclusive
 		colRight = location + width - 1; // inclusive
-		rowTop = row.getStart() + offSet;//inclusive
+		rowTop = row.getStart() + offSet;// inclusive
 		rowBottom = row.getEnd(); // exclusive
 		int waterCells = 0;
 		Set<Cell> water = new HashSet<>();
@@ -51,9 +53,12 @@ public class MyPadding implements Padding {
 			else if (previousCol == temp.j)
 				isStraight++;
 		}
+		rowMaxCol += location;
+		rowMinCol += location;
 		boolean buildwater = false;
-		for(int i = row.getEnd() - 1, j = location;i >= row.getStart()&&buildWater;i--){
-			if(hasCell[i][j]==0) buildwater = true;
+		for (int i = row.getEnd() - 1, j = location; i >= row.getStart() && buildWater; i--) {
+			if (hasCell[i][j] == 0)
+				buildwater = true;
 		}
 		buildWater = buildwater;
 		if (buildWater) {
@@ -119,7 +124,6 @@ public class MyPadding implements Padding {
 							waterCells++;
 							currentRowLocation = i;
 						}
-
 					}
 				} else {
 					for (int i = row.getStart(), j = colLeft; i < rowBottom && waterCells < 4 && j >= 0
@@ -131,7 +135,6 @@ public class MyPadding implements Padding {
 								waterCells++;
 								currentRowLocation = i;
 							}
-
 						}
 						bottomUp = false;
 					}
@@ -167,6 +170,8 @@ public class MyPadding implements Padding {
 				}
 			}
 
+		} else {
+			row.setWasNotRecentlyPadded();
 		}
 
 		// Add road when necessary
@@ -196,6 +201,49 @@ public class MyPadding implements Padding {
 				col--;
 			}
 		}
+		// EXTEND PARK TO TOUCH BUILDING
+		if (row.getParkLocation() < row.getStart()) {
+			// park is on top
+			// hasCell[temp.i + rowTop][location + temp.j];
+			if(offSet!=0){
+				//System.out.println("extend1");
+				for (int i = row.getStart(); i < rowTop ; i++) {
+					if(hasCell[i][rowMinCol] == 0&&land.unoccupied(i,rowMinCol))
+						park.add(new Cell(i, rowMinCol));
+				}
+			}
+			/*if (rowTop - 1 > row.getParkLocation()) {
+				for (int i = row.getParkLocation() + 1; i < rowTop; i++) {
+					park.add(new Cell(i, location));
+				}
+			}*/
+		} else {
+			// park is at bottom
+			if (rowTop + rowMax  <row.getParkLocation()-1) {
+				//System.out.println("extend2"+","+ (rowTop + rowMax ) + "," +(row.getParkLocation()-1));
+				/*for (int i = row.getStart(); i<row.getParkLocation(); i++) {
+					if(hasCell[i][rowMaxCol] == 0)
+						park.add(new Cell(i, rowMaxCol));
+				}*/
+				for (int i = rowTop + rowMax + 1; i<row.getParkLocation(); i++) {
+					if(hasCell[i][rowMaxCol] == 0&&land.unoccupied(i, rowMaxCol))
+						park.add(new Cell(i, rowMaxCol));
+				}
+			}
+		}
+		/*if (offSet != 0) {
+			if (row.getParkLocation() < rowTop) {
+				// park is on top
+				for (int i = row.getParkLocation() + 1; i < rowTop; i++) {
+					park.add(new Cell(i, location));
+				}
+			} else {
+				// park is at bottom
+				for (int i = row.getParkLocation() - 1; i > rowTop; i--) {
+					park.add(new Cell(i, location));
+				}
+			}
+		}*/
 		row.setCurrentLocation(location - 1);
 		return new Move(true, request, new Cell(rowTop, location), rotation, road, water, park);
 	}
@@ -220,10 +268,25 @@ public class MyPadding implements Padding {
 	public void getBuildingDetails(Iterator<Cell> iter, Row row) {
 		while (iter.hasNext()) {
 			Cell temp = iter.next();
-			rowMin = (temp.i < rowMin) ? temp.i : rowMin;
-			rowMax = (temp.i > rowMax) ? temp.i : rowMax;
-			colMin = (temp.j < colMin) ? temp.j : colMin;
-			colMax = (temp.j > colMax) ? temp.j : colMax;
+			if (temp.i < rowMin) {
+				rowMin = temp.i;
+				rowMinCol = temp.j;
+			}
+			if (temp.i > rowMax) {
+				rowMax = temp.i;
+				rowMaxCol = temp.j;
+			}
+			if (temp.j < colMin) {
+				colMin = temp.j;
+			}
+			if (temp.j > colMax) {
+				colMax = temp.j;
+			}
+			/*
+			 * rowMin = (temp.i < rowMin) ? temp.i : rowMin; rowMax = (temp.i >
+			 * rowMax) ? temp.i : rowMax; colMin = (temp.j < colMin) ? temp.j :
+			 * colMin; colMax = (temp.j > colMax) ? temp.j : colMax;
+			 */
 		}
 		width = colMax - colMin + 1;
 	}
