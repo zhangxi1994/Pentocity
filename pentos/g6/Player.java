@@ -142,8 +142,6 @@ public class Player implements pentos.sim.Player {
 				}
 			}
 			///////////////////////////////////////////////////////////////////////////////////////////
-			
-			
 		}
 
 		// Suppose no best row was found, you should reject the request
@@ -326,6 +324,9 @@ public class Player implements pentos.sim.Player {
 			bestRotation = validRotations.get(0);
 		}
 		
+		// This is changed to true if there is no promotion
+		boolean padWithWater = false;
+		
 		// If you still didn't find anything and you were length 3, promote to 4
 		if (bestRow == null && !is4 && !is5) {
 			possibleRows = Grid.getResidenceRows().get(4);
@@ -370,7 +371,9 @@ public class Player implements pentos.sim.Player {
 					}
 				}
 			}
-
+		} else {
+			// No promotion, so should pad
+			padWithWater = true;
 		}
 
 		// If it is still null, it means we didn't find the row to place it
@@ -381,14 +384,15 @@ public class Player implements pentos.sim.Player {
 
 		// All decided, now generate the complete move
 		Padding padding = new MyPadding();
-		Move move;
-		if (bestRow.getRecentlyPadded()) {
-			move = padding.getPadding(request, bestRotation, land, bestRow, bestLocation, false, bestOffSet);
+		if (bestRow.getRecentlyPadded() || !padWithWater) {
+			padWithWater = false;
 			bestRow.setWasNotRecentlyPadded();
 		} else {
-			move = padding.getPadding(request, bestRotation, land, bestRow, bestLocation, true, bestOffSet);
+			padWithWater = true;
 			bestRow.setWasRecentlyPadded();
 		}
+		Move move = padding.getPadding(request, bestRotation, land, bestRow, bestLocation, padWithWater, bestOffSet);
+		
 		if (!land.buildable(move.request.rotations()[move.rotation], move.location)) {
 			System.out.println("***Cannot build***" + move.location.i + "," + move.location.j);
 		}
