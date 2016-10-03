@@ -15,80 +15,19 @@ import pentos.g0.*;
 
 public class Player implements pentos.sim.Player {
 
-	private static int[] numFactoryRowsPerSize = { 5, 4, 3, 2 };
-	private static int factoryRowSizeShift = 2;
-	private static int[] numResidenceRowsPerSize = { 6, 4, 1 };
-	private static int residenceRowSizeShift = 3;
 	private static int rejectNum = 0;
-
-	private HashMap<Integer, Set<Row>> factoryRows = new HashMap<Integer, Set<Row>>();
-	private HashMap<Integer, Set<Row>> residenceRows = new HashMap<Integer, Set<Row>>();
 
 	private enum ResidenceType {
 		LINE, L_FACE, R_FACE, INV_L, L, R_BLK, L_BLK, INV_LIGHTNING, LIGHTNING, T, U, RANGLE, STEPS, PLUS, L_TOTEM, R_TOTEM, INV_Z, Z
 	};
 
+
 	int numberOfRejections = 0; // Counts the number of rejections.
 
 	@Override
 	public void init() {
-		initializeFactoryRows();
-		initializeResidenceRows();
-	}
-
-	private void initializeFactoryRows() {
-		// Initializing factory rows
-		int currentRow = 0;
-		int rowNumber = 0;
-		for (int i = 0; i < numFactoryRowsPerSize.length; ++i) {
-			for (int j = 0; j < numFactoryRowsPerSize[i]; ++j) {
-				int roadLocation;
-				if (rowNumber % 2 == 0) {
-					roadLocation = currentRow - 1;
-				} else {
-					roadLocation = currentRow + i + factoryRowSizeShift;
-				}
-				Row row = new Row(currentRow, currentRow + i + factoryRowSizeShift, roadLocation);
-				if (!factoryRows.containsKey(i + factoryRowSizeShift)) {
-					factoryRows.put(i + factoryRowSizeShift, new HashSet<Row>());
-				}
-				factoryRows.get(i + factoryRowSizeShift).add(row);
-
-				if (rowNumber % 2 == 0) {
-					currentRow = currentRow + i + factoryRowSizeShift;
-				} else {
-					currentRow = currentRow + i + factoryRowSizeShift + 1;
-				}
-				rowNumber++;
-			}
-		}
-	}
-
-	private void initializeResidenceRows() {
-		// Initializing residence rows, accounting for both parks and roads in
-		// the middle
-		int currentRow = 0;
-		int rowNumber = 0;
-		for (int i = 0; i < numResidenceRowsPerSize.length; ++i) {
-			for (int j = 0; j < numResidenceRowsPerSize[i]; ++j) {
-				int roadLocation, parkLocation;
-				if (rowNumber % 2 == 0) {
-					roadLocation = currentRow - 1;
-					parkLocation = currentRow + i + residenceRowSizeShift;
-				} else {
-					roadLocation = currentRow + i + residenceRowSizeShift;
-					parkLocation = currentRow - 1;
-				}
-				Row row = new Row(currentRow, currentRow + i + residenceRowSizeShift, roadLocation, parkLocation, 49);
-				if (!residenceRows.containsKey(i + residenceRowSizeShift)) {
-					residenceRows.put(i + residenceRowSizeShift, new HashSet<Row>());
-				}
-				residenceRows.get(i + residenceRowSizeShift).add(row);
-
-				currentRow = currentRow + i + residenceRowSizeShift + 1;
-				rowNumber++;
-			}
-		}
+		// Grid.initializeFactoryRows();
+		// Grid.initializeResidenceRows();
 	}
 
 	@Override
@@ -138,10 +77,11 @@ public class Player implements pentos.sim.Player {
 		int promotionBump = -1;
 		while (bestRow == null && promotionBump <= 3) {
 			promotionBump++;
-			// This is checking for the best row if you use the first dimension
-			// of the factory
-			if (factoryDimensions[0] + promotionBump > 1 && factoryDimensions[0] + promotionBump <= 5) { 
-				for (Row row : factoryRows.get(factoryDimensions[0] + promotionBump)) {
+			
+			// This is checking for the best row if you use the first dimension of the factory
+			if (factoryDimensions[0] + promotionBump > 1 && factoryDimensions[0] + promotionBump <= 5 && Grid.getFactoryRows().containsKey(factoryDimensions[0] + promotionBump) ) {
+				// Gotta make sure it's a valid dimension request
+				for (Row row : Grid.getFactoryRows().get(factoryDimensions[0] + promotionBump)) {
 					if (!factoryRowExtendable(row, land, request.rotations()[0])) {
 						continue;
 					} else {
@@ -161,13 +101,12 @@ public class Player implements pentos.sim.Player {
 			}
 			// This is checking for the best row if you use the second dimension
 			// of the factory
-			if (factoryDimensions[0] != factoryDimensions[1]) { // This makes
-																// sure that
-																// Dim2 isn't
-																// the same as
-																// Dim1
-				if (factoryDimensions[1] + promotionBump > 1 && factoryDimensions[1] + promotionBump <= 5) {
-					for (Row row : factoryRows.get(factoryDimensions[1] + promotionBump)) {
+			if (factoryDimensions[0] != factoryDimensions[1]) {
+				// This makes sure that Dim2 isn't the same as Dim1
+				if (factoryDimensions[1] + promotionBump > 1 && factoryDimensions[1] + promotionBump <= 5 && Grid.getFactoryRows().containsKey(factoryDimensions[1] + promotionBump) ) {
+					// This makes sure it's a valid dimension request
+
+					for (Row row : Grid.getFactoryRows().get(factoryDimensions[1] + promotionBump)) {
 						if (!factoryRowExtendable(row, land, request.rotations()[1])) {
 							continue;
 						} else {
@@ -186,6 +125,25 @@ public class Player implements pentos.sim.Player {
 					}
 				}
 			}
+			
+			///////////////////////////////////////////////////////////////////////////////////////////
+			if(bestRow==null && promotionBump==0){
+			//if (promotionBump==0&&Grid.getFactoryRows().get(factoryDimensions[1] + promotionBump) == null) {
+				int max = Math.max(factoryDimensions[0], factoryDimensions[1]);
+				int min = Math.max(factoryDimensions[0], factoryDimensions[1]);
+				
+				if (Grid.generatable(max, 1)) {
+					Grid.generateFactoryRow(max);
+					promotionBump=-1; //This is to make sure the loop does it's first initial run again.
+				}
+				else if(Grid.generatable(min, 1)){
+					Grid.generateFactoryRow(min);
+					promotionBump=-1; //This is to make sure the loop does it's first initial run again.
+				}
+			}
+			///////////////////////////////////////////////////////////////////////////////////////////
+			
+			
 		}
 
 		// Suppose no best row was found, you should reject the request
@@ -268,11 +226,24 @@ public class Player implements pentos.sim.Player {
 		}
 		Set<Row> possibleRows;
 		if (is5) {
-			possibleRows = residenceRows.get(5);
+			possibleRows = Grid.getResidenceRows().get(5);
 		} else if (is4) {
-			possibleRows = residenceRows.get(4);
+			possibleRows = Grid.getResidenceRows().get(4);
 		} else {
-			possibleRows = residenceRows.get(3);
+			possibleRows = Grid.getResidenceRows().get(3);
+		}
+		
+		int rowSize = 3;
+		if (is5)
+			rowSize = 5;
+		else if (is4)
+			rowSize = 4;
+		if (possibleRows == null) {
+			// row doesn't exits, generate row dynamically
+			if (Grid.generatable(rowSize, 2)) {
+				Grid.generateResidenceRow(rowSize);
+				possibleRows = Grid.getResidenceRows().get(rowSize);
+			}
 		}
 
 		/*
@@ -311,6 +282,42 @@ public class Player implements pentos.sim.Player {
 			}
 		}
 		
+		if (bestRow == null) {
+			// row exits, but it is unbuildable, generate another row
+			// dynamically
+			if (Grid.generatable(rowSize, 2)) {
+				Grid.generateResidenceRow(rowSize);
+				possibleRows = Grid.getResidenceRows().get(rowSize);
+			}
+		}
+
+		// try again
+		for (int rotation : validRotations) {
+			Building rotatedRequest = request.rotations()[rotation];
+			for (Row row : possibleRows) {
+				int offSet = 0;
+				int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest, offSet);
+				if (positionInRow >= 0) {
+					if (positionInRow > bestLocation) {
+						bestLocation = positionInRow;
+						bestRow = row;
+						bestOffSet = offSet;
+						bestRotation = rotation;
+						leastLeftCells = countCellsOnLeft(rotatedRequest);
+					} else if (positionInRow == bestLocation) {
+						int leftCells = countCellsOnLeft(rotatedRequest);
+						if (leftCells < leastLeftCells) {
+							bestLocation = positionInRow;
+							bestRow = row;
+							bestOffSet = offSet;
+							bestRotation = rotation;
+							leastLeftCells = leftCells;
+						}
+					}
+				}
+			}
+		}
+		
 		Building rotatedRequest;
 		if (bestRotation != -1) {
 			rotatedRequest = request.rotations()[bestRotation];
@@ -318,24 +325,13 @@ public class Player implements pentos.sim.Player {
 			rotatedRequest = request.rotations()[validRotations.get(0)];
 			bestRotation = validRotations.get(0);
 		}
-
+		
 		// If you still didn't find anything and you were length 3, promote to 4
 		if (bestRow == null && !is4 && !is5) {
-			possibleRows = residenceRows.get(4);
-			for (Row row : possibleRows) {
-				int offSet = (row.getRoadLocation() > row.getStart()) ? 1 : 0;
-				int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest, offSet);
-				if (positionInRow >= 0 && positionInRow > bestLocation) {
-					bestLocation = positionInRow;
-					bestRow = row;
-					bestOffSet = offSet;
-				}
-			}
-			// If you still haven't found anything, promote to 5
-			if (bestRow == null) {
-				possibleRows = residenceRows.get(5);
+			possibleRows = Grid.getResidenceRows().get(4);
+			if (possibleRows != null) {
 				for (Row row : possibleRows) {
-					int offSet = (row.getRoadLocation() > row.getStart()) ? 2 : 0;
+					int offSet = (row.getRoadLocation() > row.getStart()) ? 1 : 0;
 					int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest, offSet);
 					if (positionInRow >= 0 && positionInRow > bestLocation) {
 						bestLocation = positionInRow;
@@ -344,18 +340,37 @@ public class Player implements pentos.sim.Player {
 					}
 				}
 			}
+			// If you still haven't found anything, promote to 5
+			if (bestRow == null) {
+				possibleRows = Grid.getResidenceRows().get(5);
+				if (possibleRows != null) {
+					for (Row row : possibleRows) {
+						int offSet = (row.getRoadLocation() > row.getStart()) ? 2 : 0;
+						int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest, offSet);
+						if (positionInRow >= 0 && positionInRow > bestLocation) {
+							bestLocation = positionInRow;
+							bestRow = row;
+							bestOffSet = offSet;
+						}
+					}
+				}
+
+			}
 		} else if (bestRow == null && is4) {// If you still didn't find anything
 											// and you were length 4
-			possibleRows = residenceRows.get(5);
-			for (Row row : possibleRows) {
-				int offSet = (row.getRoadLocation() > row.getStart()) ? 1 : 0;
-				int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest, offSet);
-				if (positionInRow >= 0 && positionInRow > bestLocation) {
-					bestLocation = positionInRow;
-					bestRow = row;
-					bestOffSet = offSet;
+			possibleRows = Grid.getResidenceRows().get(5);
+			if (possibleRows != null) {
+				for (Row row : possibleRows) {
+					int offSet = (row.getRoadLocation() > row.getStart()) ? 1 : 0;
+					int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest, offSet);
+					if (positionInRow >= 0 && positionInRow > bestLocation) {
+						bestLocation = positionInRow;
+						bestRow = row;
+						bestOffSet = offSet;
+					}
 				}
 			}
+
 		}
 
 		// If it is still null, it means we didn't find the row to place it

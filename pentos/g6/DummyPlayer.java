@@ -2,6 +2,7 @@ package pentos.g6;
 
 import pentos.sim.Cell;
 import pentos.sim.Building;
+import pentos.sim.Building.Type;
 import pentos.sim.Land;
 import pentos.sim.Move;
 
@@ -35,7 +36,16 @@ public class DummyPlayer implements pentos.sim.Player {
 		if (moves.isEmpty()) // reject if no valid placements
 			return new Move(false);
 		else {
-			Move chosen = moves.get(gen.nextInt(moves.size()));
+			Move chosen;
+			if(request.type==Type.FACTORY){
+				chosen=moves.get(0);
+			}
+			else if(request.type==Type.RESIDENCE){
+				chosen=moves.get(moves.size()-1);
+			}
+			else{
+				chosen = moves.get(gen.nextInt(moves.size()));
+			}
 			// get coordinates of building placement (position plus local
 			// building cell coordinates)
 			Set<Cell> shiftedCells = new HashSet<Cell>();
