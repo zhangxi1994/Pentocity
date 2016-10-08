@@ -14,7 +14,7 @@ public class Sequencer implements pentos.sim.Sequencer {
     }
     
     public Building next() {
-	if (gen.nextDouble() >= 0.7)
+	if (gen.nextDouble() >= 0)
 	    return randomFactory();
 	else
 	    return randomResidence();
