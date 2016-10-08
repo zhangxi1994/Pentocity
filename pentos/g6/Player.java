@@ -16,6 +16,9 @@ import pentos.g0.*;
 public class Player implements pentos.sim.Player {
 
 	private static int rejectNum = 0;
+	
+	private static int FACTORY_THRESHOLD = 22;
+	private static int RESIDENCE_THRESHOLD = 28;
 
 	private enum ResidenceType {
 		LINE, L_FACE, R_FACE, INV_L, L, R_BLK, L_BLK, INV_LIGHTNING, LIGHTNING, T, U, RANGLE, STEPS, PLUS, L_TOTEM, R_TOTEM, INV_Z, Z
@@ -150,6 +153,14 @@ public class Player implements pentos.sim.Player {
 		if (bestRow == null) {
 			System.out.println("Rejecting because no bestRow was found.");
 			return new Move(false);
+		} else {
+			// If threshold is exceeded, build a new row of the same size
+			if (bestRow.getCurrentLocation() > FACTORY_THRESHOLD) {
+				if (Grid.generatable(bestRow.size(), 1)) {
+					System.out.println("Building new factory row of size " + bestRow.size());
+					Grid.generateFactoryRow(bestRow.size());
+				}
+			}
 		}
 
 		boolean accept = true;
@@ -381,6 +392,14 @@ public class Player implements pentos.sim.Player {
 		// If it is still null, it means we didn't find the row to place it
 		if (bestRow == null) {
 			return new Move(false);
+		} else {
+			// If threshold is exceeded, build a new row of the same size
+			if (bestRow.getCurrentLocation() < RESIDENCE_THRESHOLD) {
+				if (Grid.generatable(bestRow.size(), 1)) {
+					System.out.println("Building new residence row of size " + bestRow.size());
+					Grid.generateResidenceRow(bestRow.size());
+				}
+			}
 		}
 
 		// All decided, now generate the complete move
