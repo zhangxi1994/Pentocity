@@ -12,8 +12,8 @@ public class Grid {
 	private static int[] numResidenceRowsPerSize = { 6, 4, 1 };
 	private static int residenceRowSizeShift = 3;
 
-	private static int factoryRowCurrentPosition = 0;// starts from bottom
-	//private static int factoryRowCurrentPosition = 49;// starts from bottom
+	//private static int factoryRowCurrentPosition = 0;// starts from bottom
+	private static int factoryRowCurrentPosition = 49;// starts from bottom
 	private static int residenceRowCurrentPosition = 0;// starts from top
 	private static int previousRowType = 0;// 1 means park, 0 means road
 	private static boolean previousIsFactoryRoad = true;// 1 means park, 0 means
@@ -22,12 +22,12 @@ public class Grid {
 	public static boolean generatable(int rowSize, int rowType) {
 		// 1 for factory, 2 for residence
 
-		//if (factoryRowCurrentPosition - residenceRowCurrentPosition < rowSize)
-			//return false;/// factory and residence will collide
+		if (factoryRowCurrentPosition - residenceRowCurrentPosition < rowSize)
+			return false;/// factory and residence will collide
 		if (rowType == 1) {
-			//if (factoryRowCurrentPosition < 0)
-				//return false; // grid full
-			  if(factoryRowCurrentPosition>49) return false; //
+			if (factoryRowCurrentPosition < 0)
+				return false; // grid full
+			 // if(factoryRowCurrentPosition>49) return false; //
 			 
 		} else {
 			if (residenceRowCurrentPosition > 49)
@@ -44,7 +44,7 @@ public class Grid {
 		return residenceRows;
 	}
 
-	public static void generateFactoryRow2(int rowSize) {
+	public static void generateFactoryRow(int rowSize) {
 		if (generatable(rowSize, 1)) {
 			int roadLocation;
 			int end = factoryRowCurrentPosition + 1; // exclusive
@@ -68,7 +68,7 @@ public class Grid {
 		}
 	}
 
-	public static void generateFactoryRow(int rowSize) {
+	public static void generateFactoryRow2(int rowSize) {
 		if (generatable(rowSize, 1)) {
 			int roadLocation;
 			int start = factoryRowCurrentPosition; // exclusive

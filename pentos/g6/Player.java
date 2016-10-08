@@ -43,10 +43,18 @@ public class Player implements pentos.sim.Player {
 			if (move.accept == true) {
 				return move;
 			}
-			//pentos.g3.Player player3 = new pentos.g3.Player();
-			//return player3.play(request, land);
-			DummyPlayer dummyplayer = new DummyPlayer();
-			return dummyplayer.play(request, land);
+			else{
+				//pentos.g2.Player player2 = new pentos.g2.Player();
+				DummyPlayer dummyplayer = new DummyPlayer();
+				move = dummyplayer.play(request, land);
+				
+				if(move.accept == false)
+					System.out.println("Default player couldn't find anything either.");
+				return move;
+				
+			}
+			//DummyPlayer dummyplayer = new DummyPlayer();
+			//return dummyplayer.play(request, land);
 		}
 		if (request.getType() == Type.FACTORY) {
 			Move move = generateFactoryMove(request, land);
@@ -84,7 +92,7 @@ public class Player implements pentos.sim.Player {
 			if (factoryDimensions[0] + promotionBump > 1 && factoryDimensions[0] + promotionBump <= 5 && Grid.getFactoryRows().containsKey(factoryDimensions[0] + promotionBump) ) {
 				// Gotta make sure it's a valid dimension request
 				for (Row row : Grid.getFactoryRows().get(factoryDimensions[0] + promotionBump)) {
-					if (!factoryRowExtendable(row, land, request.rotations()[0])) {
+					if (!factoryRowExtendable(row, land, request.rotations()[0])) {	
 						continue;
 					} else {
 						if (bestRow == null) {
