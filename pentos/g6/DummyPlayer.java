@@ -100,7 +100,8 @@ public class DummyPlayer implements pentos.sim.Player {
 		road_cells.addAll(chosenMove.road); //Adding this road to the set of roads
 		return chosenMove;
 	}
-
+	
+	
 	public Move play(Building request, Land land) {
 		// find all valid building locations and orientations
 		ArrayList<Move> moves = new ArrayList<Move>();
@@ -159,7 +160,7 @@ public class DummyPlayer implements pentos.sim.Player {
 			}
 		}
 	}
-
+	
 	// build shortest sequence of road cells to connect to a set of cells b
 	private Set<Cell> findShortestRoad(Set<Cell> b, Land land) {
 		Set<Cell> output = new HashSet<Cell>();
