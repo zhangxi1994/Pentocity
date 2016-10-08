@@ -43,6 +43,7 @@ public class Player implements pentos.sim.Player {
 			//pentos.g3.Player player3 = new pentos.g3.Player();
 			//return player3.play(request, land);
 			DummyPlayer dummyplayer = new DummyPlayer();
+			dummyplayer.initializeRoadCells(land);
 			return dummyplayer.play(request, land);
 		}
 		if (request.getType() == Type.FACTORY) {
