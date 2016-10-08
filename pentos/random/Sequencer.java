@@ -6,20 +6,19 @@ import pentos.sim.Cell;
 
 public class Sequencer implements pentos.sim.Sequencer {
 
-	private Random gen;
-	private final double ratio = 0.7; // ratio of residences to total number of
-										// buildings
+    private Random gen;
+    private final double ratio = 0.7; // ratio of residences to total number of buildings
 
-	public void init() {
-		gen = new Random();
-	}
-
-	public Building next() {
-		if (gen.nextDouble() >= 0.7)
-			return randomFactory();
-		else
-			return randomResidence();
-	}
+    public void init(Long seed) {
+	gen = new Random();
+    }
+    
+    public Building next() {
+	if (gen.nextDouble() >= 0.7)
+	    return randomFactory();
+	else
+	    return randomResidence();
+    }
 
 	private Building randomResidence() { // random walk of length 5
 		Set<Cell> residence = new HashSet<Cell>();
