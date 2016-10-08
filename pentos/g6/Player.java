@@ -448,6 +448,7 @@ public class Player implements pentos.sim.Player {
 
 		if (row.getRoadLocation() != -1 
 				&& row.getRoadLocation() != 50
+				&& row.getCurrentLocation() < 50
 				&& !land.unoccupied(row.getRoadLocation(), row.getCurrentLocation())
 				&& land.getCellType(row.getRoadLocation(), row.getCurrentLocation()) != Cell.Type.ROAD) {
 			// If road position is occupied and isn't a road already, can't extend
