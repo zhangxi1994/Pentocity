@@ -21,9 +21,6 @@ public class Player implements pentos.sim.Player {
 		LINE, L_FACE, R_FACE, INV_L, L, R_BLK, L_BLK, INV_LIGHTNING, LIGHTNING, T, U, RANGLE, STEPS, PLUS, L_TOTEM, R_TOTEM, INV_Z, Z
 	};
 
-
-	int numberOfRejections = 0; // Counts the number of rejections.
-
 	@Override
 	public void init() {
 		// Grid.initializeFactoryRows();
@@ -81,8 +78,9 @@ public class Player implements pentos.sim.Player {
 			promotionBump++;
 			
 			// This is checking for the best row if you use the first dimension of the factory
-			if (factoryDimensions[0] + promotionBump > 1 && factoryDimensions[0] + promotionBump <= 5 && Grid.getFactoryRows().containsKey(factoryDimensions[0] + promotionBump) ) {
-				// Gotta make sure it's a valid dimension request
+			if (factoryDimensions[0] + promotionBump <= 5 
+					&& Grid.getFactoryRows().containsKey(factoryDimensions[0] + promotionBump) ) {
+				
 				for (Row row : Grid.getFactoryRows().get(factoryDimensions[0] + promotionBump)) {
 					if (!factoryRowExtendable(row, land, request.rotations()[0])) {
 						continue;
@@ -100,14 +98,16 @@ public class Player implements pentos.sim.Player {
 						}
 					}
 				}
+				
 			}
+			
 			// This is checking for the best row if you use the second dimension
 			// of the factory
 			if (factoryDimensions[0] != factoryDimensions[1]) {
 				// This makes sure that Dim2 isn't the same as Dim1
-				if (factoryDimensions[1] + promotionBump > 1 && factoryDimensions[1] + promotionBump <= 5 && Grid.getFactoryRows().containsKey(factoryDimensions[1] + promotionBump) ) {
-					// This makes sure it's a valid dimension request
-
+				if (factoryDimensions[1] + promotionBump <= 5 
+						&& Grid.getFactoryRows().containsKey(factoryDimensions[1] + promotionBump) ) {
+					
 					for (Row row : Grid.getFactoryRows().get(factoryDimensions[1] + promotionBump)) {
 						if (!factoryRowExtendable(row, land, request.rotations()[1])) {
 							continue;
@@ -132,7 +132,7 @@ public class Player implements pentos.sim.Player {
 			if(bestRow==null && promotionBump==0){
 			//if (promotionBump==0&&Grid.getFactoryRows().get(factoryDimensions[1] + promotionBump) == null) {
 				int max = Math.max(factoryDimensions[0], factoryDimensions[1]);
-				int min = Math.max(factoryDimensions[0], factoryDimensions[1]);
+				int min = Math.min(factoryDimensions[0], factoryDimensions[1]);
 				
 				if (Grid.generatable(max, 1)) {
 					Grid.generateFactoryRow(max);
@@ -140,7 +140,7 @@ public class Player implements pentos.sim.Player {
 				}
 				else if(Grid.generatable(min, 1)){
 					Grid.generateFactoryRow(min);
-					promotionBump=-1; //This is to make sure the loop does it's first initial run again.
+					promotionBump=-1; //This is to make sure the loop does it's initial run again.
 				}
 			}
 			///////////////////////////////////////////////////////////////////////////////////////////
@@ -149,7 +149,6 @@ public class Player implements pentos.sim.Player {
 		// Suppose no best row was found, you should reject the request
 		if (bestRow == null) {
 			System.out.println("Rejecting because no bestRow was found.");
-			numberOfRejections++;
 			return new Move(false);
 		}
 
@@ -381,7 +380,6 @@ public class Player implements pentos.sim.Player {
 
 		// If it is still null, it means we didn't find the row to place it
 		if (bestRow == null) {
-			numberOfRejections++;
 			return new Move(false);
 		}
 
