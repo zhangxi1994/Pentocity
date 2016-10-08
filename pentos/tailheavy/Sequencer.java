@@ -1,4 +1,4 @@
-package pentos.single3s;
+package pentos.tailheavy;
 
 import java.util.*;
 import pentos.sim.Building;
@@ -10,21 +10,17 @@ public class Sequencer implements pentos.sim.Sequencer {
     private final double ratio = 0.7; // ratio of residences to total number of buildings
 
     public void init(Long seed) {
-	gen = new Random();
+	if (seed != null)
+	    gen = new Random(seed.longValue());
+	else
+	    gen = new Random();
     }
     
     public Building next() {
-    	return residenceU();
-    }
-    
-    private Building residenceU(){
-    	Set <Cell> residence = new HashSet<Cell>();
-    	residence.add(new Cell(0,0));
-    	residence.add(new Cell(0,1));
-    	residence.add(new Cell(1,1));
-    	residence.add(new Cell(2,1));
-    	residence.add(new Cell(2,0));
-    	return new Building(residence.toArray(new Cell[residence.size()]), Building.Type.RESIDENCE);
+	if (gen.nextDouble() > ratio)
+	    return randomFactory();
+	else
+	    return randomResidence();
     }
 
     private Building randomResidence() { // random walk of length 5
