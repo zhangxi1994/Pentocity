@@ -182,10 +182,7 @@ public class Player implements pentos.sim.Player {
 			int extension = (rotate) ? factoryDimensions[0] : factoryDimensions[1];
 			for (int i = 0; i < extension; i++) {
 				if (!land.unoccupied(bestRow.getRoadLocation(), bestRow.getCurrentLocation() + i)) {
-					// This means it should already be road, so don't do
-					// anything. There might be a logic issue here.
-					// return new Move(false);
-					continue;
+					
 				} else {
 					road.add(new Cell(bestRow.getRoadLocation(), bestRow.getCurrentLocation() + i));
 				}
@@ -448,6 +445,14 @@ public class Player implements pentos.sim.Player {
 		int topCell = row.getStart();
 		int leftCell = row.getCurrentLocation();
 
+		if (row.getRoadLocation() != -1 
+				&& row.getRoadLocation() != 50
+				&& !land.unoccupied(row.getRoadLocation(), row.getCurrentLocation())
+				&& land.getCellType(row.getRoadLocation(), row.getCurrentLocation()) != Cell.Type.ROAD) {
+			// If road position is occupied and isn't a road already, can't extend
+			return false;
+		}
+		
 		return land.buildable(factory, new Cell(topCell, leftCell));
 
 	}
