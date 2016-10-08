@@ -44,6 +44,7 @@ public class Player implements pentos.sim.Player {
 				return move;
 			}
 			DummyPlayer dummyplayer = new DummyPlayer();
+			dummyplayer.initializeRoadCells(land);
 			return dummyplayer.play(request, land);
 		}
 		if (request.getType() == Type.FACTORY) {

@@ -17,6 +17,17 @@ public class DummyPlayer implements pentos.sim.Player {
 							// is called
 
 	}
+	
+	public void initializeRoadCells(Land land){
+		for(int i=0; i<land.side; i++){
+			for(int j=0; j<land.side; j++){
+				Cell p = new Cell(i,j);
+				if(p.isRoad()){
+					road_cells.add(p);
+				}				
+			}
+		}
+	}
 
 	public Move play(Building request, Land land) {
 		// find all valid building locations and orientations
