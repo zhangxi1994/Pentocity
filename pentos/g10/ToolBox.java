@@ -229,6 +229,113 @@ public class ToolBox {
 		}
 		return new Cell(minRow, minCol);
 	}
+	public static Cell findTopLeft(Set<Cell> cells) {
+		if (cells == null || cells.size() == 0) {
+			System.out.println("Error: Null or empty cells passed to findTopLeft()");
+			return null;
+		}
+		int landLimit=Player.staticLandSize;
+		int minRow = 100;
+		int minCol = 100;
+		for (Cell c:cells) {
+			if (c.i <= minRow) {
+				minRow = c.i;
+			}
+			if (c.j <= minCol) {
+				minCol = c.j;
+			}
+		}
+		if (minRow < 0 || minRow > landLimit-1) {
+			System.out.println("Error: Top row in cells is out of range: " + minRow);
+			minRow = 0;
+		}
+		if (minCol < 0 || minCol > landLimit-1) {
+			System.out.println("Error: Leftmost column in cells is out of range: " + minCol);
+			minCol = 0;
+		}
+		return new Cell(minRow, minCol);
+	}
+	public static int calculateVerticalDistance(Cell start,int targetRow){
+		return Math.abs(start.i-targetRow);
+	}
+	public static Cell findBottomRight(Set<Cell> cells) {
+		if (cells == null || cells.size() == 0) {
+			System.out.println("Error: Null or empty cells passed to findTopLeft()");
+			return null;
+		}
+		int landLimit=Player.staticLandSize;
+		int maxRow = 0;
+		int maxCol = 0;
+		for (Cell c:cells) {
+			if (c.i >= maxRow) {
+				maxRow = c.i;
+			}
+			if (c.j >= maxCol) {
+				maxCol = c.j;
+			}
+		}
+		if (maxRow < 0 || maxRow > landLimit-1) {
+			System.out.println("Error: Top row in cells is out of range: " + maxRow);
+			maxRow = landLimit-1;
+		}
+		if (maxCol < 0 || maxCol > landLimit-1) {
+			System.out.println("Error: Leftmost column in cells is out of range: " + maxCol);
+			maxCol = landLimit-1;
+		}
+		return new Cell(maxRow, maxCol);
+	}
+	public static Cell findTopRight(Set<Cell> cells) {
+		if (cells == null || cells.size() == 0) {
+			System.out.println("Error: Null or empty cells passed to findTopLeft()");
+			return null;
+		}
+		int landLimit=Player.staticLandSize;
+		int minRow = 100;
+		int maxCol = 0;
+		for (Cell c:cells) {
+			if (c.i <= minRow) {
+				minRow = c.i;
+			}
+			if (c.j >= maxCol) {
+				maxCol = c.j;
+			}
+		}
+		if (minRow < 0 || minRow > landLimit-1) {
+			System.out.println("Error: Top row in cells is out of range: " + minRow);
+			minRow = landLimit-1;
+		}
+		if (maxCol < 0 || maxCol > landLimit-1) {
+			System.out.println("Error: Leftmost column in cells is out of range: " + maxCol);
+			maxCol = landLimit-1;
+		}
+		return new Cell(minRow, maxCol);
+	}
+	public static Cell findBottomLeft(Set<Cell> cells) {
+		if (cells == null || cells.size() == 0) {
+			System.out.println("Error: Null or empty cells passed to findTopLeft()");
+			return null;
+		}
+		int landLimit=Player.staticLandSize;
+		int maxRow = 0;
+		int minCol = 100;
+		for (Cell c:cells) {
+			if (c.i >= maxRow) {
+				maxRow = c.i;
+			}
+			if (c.j <= minCol) {
+				minCol = c.j;
+			}
+		}
+		if (maxRow < 0 || maxRow > landLimit-1) {
+			System.out.println("Error: Top row in cells is out of range: " + maxRow);
+			maxRow = landLimit-1;
+		}
+		if (minCol < 0 || minCol > landLimit-1) {
+			System.out.println("Error: Leftmost column in cells is out of range: " + minCol);
+			minCol = landLimit-1;
+		}
+		return new Cell(maxRow, minCol);
+	}
 
 	public static Cell[] lookToTopLeft(Cell[] cells, Cell topLeft) {
 		int landLimit=Player.staticLandSize;
@@ -327,6 +434,8 @@ public class ToolBox {
 		Building rotated = action.getBuilding().rotations()[action.getRotation()];
 		System.out.println("Cells to build: " + ToolBox.shiftCells(rotated, action.getStartPoint()));
 		System.out.println("Roads in the pack: " + action.getRoadCells());
+		System.out.println("Parks in the pack: " + action.getParkCells());
+		System.out.println("Water in the pack: " + action.getWaterCells());
 	}
 	//Find the top left cell if topRight is the top right cell of building
 	public static Cell shiftFromTopRight(Building b, Cell topRight) {
@@ -440,5 +549,63 @@ public class ToolBox {
 		if(c.j<0||c.j>landLimit-1)
 			return false;
 		return true;
+	}
+	public static Set<Cell> findSurroundingVacantNeighbors(Set<Cell> toBuild,Land land){
+		Set<Cell> neighbors=new HashSet<>();
+		for(Cell c:toBuild){
+			int x=c.i;
+			int y=c.j;
+			int[] xs=new int[]{x-2,x-1,x,x+1,x+2};
+			int[] ys=new int[]{y-2,y-1,y,y+1,y+2};
+			for(int i=0;i<xs.length;i++){
+				for(int j=0;j<ys.length;j++){
+					int thisX=xs[i];
+					int thisY=ys[j];
+					if(thisX<0||thisX>=land.side||thisY<0||thisY>=land.side)
+						continue;
+					Cell target=new Cell(xs[i],ys[j]);
+					if(land.unoccupied(target))
+						neighbors.add(target);
+				}
+			}
+		}
+		neighbors.removeAll(toBuild);
+		return neighbors;
+	}
+	public static int geoDistance(Cell start,Cell end){
+		return Math.abs(start.i-end.i)+Math.abs(start.j-end.j);
+	}
+	
+	/*
+	 * int denotes border
+	 * 0: up
+	 * 1: right
+	 * 2: bottom
+	 * 3: left
+	 * */
+	public static int findClosestBorder(Cell c,Action action,Land land){
+		Cell start=action.getStartPoint();
+		if(!land.unoccupied(start))
+			return -1;
+		if(start.j==0)
+			return 3;
+		if(start.i==0)
+			return 0;
+		if(start.j==land.side-1)
+			return 1;
+		if(start.i==land.side-1)
+			return 2;
+		if(!land.unoccupied(c))
+			return -1;
+		if(c.j==0)
+			return 3;
+		if(c.i==0)
+			return 0;
+		if(c.j==land.side-1)
+			return 1;
+		if(c.i==land.side-1)
+			return 2;
+			
+		return -1;
 	}
 }

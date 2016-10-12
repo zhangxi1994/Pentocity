@@ -19,11 +19,11 @@ public class Sequencer implements pentos.sim.Sequencer {
     
     private Building residenceU(){
     	Set <Cell> residence = new HashSet<Cell>();
+    	residence.add(new Cell(0,0));
     	residence.add(new Cell(0,1));
-    	residence.add(new Cell(1,0));
     	residence.add(new Cell(1,1));
-    	residence.add(new Cell(1,2));
     	residence.add(new Cell(2,1));
+    	residence.add(new Cell(2,0));
     	return new Building(residence.toArray(new Cell[residence.size()]), Building.Type.RESIDENCE);
     }
 

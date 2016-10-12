@@ -43,8 +43,7 @@ public class Player implements pentos.sim.Player {
 			if (move.accept == true) {
 				return move;
 			}
-			//pentos.g3.Player player3 = new pentos.g3.Player();
-			//return player3.play(request, land);
+			
 			DummyPlayer dummyplayer = new DummyPlayer();
 			dummyplayer.initializeRoadCells(land);
 			return dummyplayer.leastRoadMove(request, land);
@@ -82,11 +81,11 @@ public class Player implements pentos.sim.Player {
 			promotionBump++;
 			
 			// This is checking for the best row if you use the first dimension of the factory
-			if (factoryDimensions[0] + promotionBump <= 5 
+			if (factoryDimensions[0] + promotionBump <= 7
 					&& Grid.getFactoryRows().containsKey(factoryDimensions[0] + promotionBump) ) {
 				
 				for (Row row : Grid.getFactoryRows().get(factoryDimensions[0] + promotionBump)) {
-					if (!factoryRowExtendable(row, land, request.rotations()[0])) {
+					if (!factoryRowExtendable(row, land, request.rotations()[0])) {	
 						continue;
 					} else {
 						if (bestRow == null) {
@@ -109,7 +108,7 @@ public class Player implements pentos.sim.Player {
 			// of the factory
 			if (factoryDimensions[0] != factoryDimensions[1]) {
 				// This makes sure that Dim2 isn't the same as Dim1
-				if (factoryDimensions[1] + promotionBump <= 5 
+				if (factoryDimensions[1] + promotionBump <= 7 
 						&& Grid.getFactoryRows().containsKey(factoryDimensions[1] + promotionBump) ) {
 					
 					for (Row row : Grid.getFactoryRows().get(factoryDimensions[1] + promotionBump)) {

@@ -204,42 +204,21 @@ public class MyPadding implements Padding {
 		// EXTEND PARK TO TOUCH BUILDING
 		if (row.getParkLocation() < row.getStart()) {
 			// park is on top
-			// hasCell[temp.i + rowTop][location + temp.j];
 			if (offSet != 0) {
-				// System.out.println("extend1");
 				for (int i = row.getStart(); i < rowTop; i++) {
 					if (hasCell[i][rowMinCol] == 0 && land.unoccupied(i, rowMinCol))
 						park.add(new Cell(i, rowMinCol));
 				}
 			}
-			/*
-			 * if (rowTop - 1 > row.getParkLocation()) { for (int i =
-			 * row.getParkLocation() + 1; i < rowTop; i++) { park.add(new
-			 * Cell(i, location)); } }
-			 */
 		} else {
 			// park is at bottom
 			if (rowTop + rowMax < row.getParkLocation() - 1) {
-				// System.out.println("extend2"+","+ (rowTop + rowMax ) + ","
-				// +(row.getParkLocation()-1));
-				/*
-				 * for (int i = row.getStart(); i<row.getParkLocation(); i++) {
-				 * if(hasCell[i][rowMaxCol] == 0) park.add(new Cell(i,
-				 * rowMaxCol)); }
-				 */
 				for (int i = rowTop + rowMax + 1; i < row.getParkLocation(); i++) {
 					if (hasCell[i][rowMaxCol] == 0 && land.unoccupied(i, rowMaxCol))
 						park.add(new Cell(i, rowMaxCol));
 				}
 			}
 		}
-		/*
-		 * if (offSet != 0) { if (row.getParkLocation() < rowTop) { // park is
-		 * on top for (int i = row.getParkLocation() + 1; i < rowTop; i++) {
-		 * park.add(new Cell(i, location)); } } else { // park is at bottom for
-		 * (int i = row.getParkLocation() - 1; i > rowTop; i--) { park.add(new
-		 * Cell(i, location)); } } }
-		 */
 		row.setCurrentLocation(location - 1);
 		return new Move(true, request, new Cell(rowTop, location), rotation, road, water, park);
 	}

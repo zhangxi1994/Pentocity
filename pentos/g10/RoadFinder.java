@@ -68,7 +68,7 @@ public class RoadFinder
                                         Player player, Action action,
                                         Land land)
     {
-        System.out.println("MY FUNCTION CALLED");
+//        System.out.println("MY FUNCTION CALLED");
         Queue<Cell> queue     = new LinkedList<Cell>();
         Set<Cell>   visited   = new HashSet<>();
         Set<Cell>   clearPath = new HashSet<>();
