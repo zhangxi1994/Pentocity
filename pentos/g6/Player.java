@@ -43,18 +43,10 @@ public class Player implements pentos.sim.Player {
 			if (move.accept == true) {
 				return move;
 			}
-			else{
-				//pentos.g2.Player player2 = new pentos.g2.Player();
-				DummyPlayer dummyplayer = new DummyPlayer();
-				move = dummyplayer.play(request, land);
-				
-				if(move.accept == false)
-					System.out.println("Default player couldn't find anything either.");
-				return move;
-				
-			}
-			//DummyPlayer dummyplayer = new DummyPlayer();
-			//return dummyplayer.play(request, land);
+			
+			DummyPlayer dummyplayer = new DummyPlayer();
+			dummyplayer.initializeRoadCells(land);
+			return dummyplayer.play(request, land);
 		}
 		if (request.getType() == Type.FACTORY) {
 			Move move = generateFactoryMove(request, land);
