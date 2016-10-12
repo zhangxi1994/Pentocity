@@ -22,13 +22,86 @@ public class DummyPlayer implements pentos.sim.Player {
 		for(int i=0; i<land.side; i++){
 			for(int j=0; j<land.side; j++){
 				Cell p = new Cell(i,j);
-				if(p.isRoad()){
+				if(land.getCellType(p)==Cell.Type.ROAD){
 					road_cells.add(p);
 				}				
 			}
 		}
 	}
-
+	
+	public Move leastRoadMove(Building request, Land land){
+		//find all valid building locations and orientations
+		ArrayList<Move> moves = new ArrayList<Move>();
+		if(request.type == Building.Type.FACTORY){
+			//searching top-down, left-right
+			for(int j=0; j<land.side; j++){
+				for(int i=0; i<land.side; i++){
+					Cell p = new Cell(i,j);
+					Building[] rotations = request.rotations();
+					for(int ri=0; ri < rotations.length; ri++){
+						Building b = rotations[ri];
+						if(land.buildable(b, p))
+							moves.add(new Move(true, request, p, ri, new HashSet<Cell>(), new HashSet<Cell>(), new HashSet<Cell>()));
+					}
+				}
+			}
+		}
+		else if(request.type == Building.Type.FACTORY){
+			//Searching top-down, right-left
+			for(int j=0; j<land.side; j++){
+				for(int i=land.side; i>=0; i--){
+					Cell p = new Cell(i,j);
+					Building[] rotations = request.rotations();
+					for(int ri=0; ri < rotations.length; ri++){
+						Building b = rotations[ri];
+						if(land.buildable(b, p))
+							moves.add(new Move(true, request, p, ri, new HashSet<Cell>(), new HashSet<Cell>(), new HashSet<Cell>()));
+					}
+				}
+			}
+		}
+		//Reject is no valid placements exist
+		if(moves.isEmpty())
+			return new Move(false);
+		
+		ArrayList<Move> moves2 = new ArrayList<Move>();
+		//Iterate through the moves and find their shortest roads for each
+		for(int i=0; i<moves.size(); i++){
+			Move mc = moves.get(i);
+			// get coordinates of building placement (position plus local
+						// building cell coordinates)
+						Set<Cell> shiftedCells = new HashSet<Cell>();
+						for (Cell x : mc.request.rotations()[mc.rotation])
+							shiftedCells.add(new Cell(x.i + mc.location.i, x.j + mc.location.j));
+						// builda road to connect this building to perimeter
+						Set<Cell> roadCells = findShortestRoad(shiftedCells, land);
+						if(roadCells == null){
+							continue;
+						}
+						else {
+							mc.road = roadCells;
+							moves2.add(mc);
+						}
+		}
+		moves = moves2;
+		
+		//Reject is no valid placements exist
+		if(moves.isEmpty())
+			return new Move(false);
+		
+		//Find minimum road length move
+		int minimumIndex =0;
+		for(int i=0; i<moves.size(); i++){
+			if(moves.get(i).road.size() < moves.get(minimumIndex).road.size())
+				minimumIndex = i;
+		}
+		
+		Move chosenMove = moves.get(minimumIndex);
+		road_cells.addAll(chosenMove.road); //Adding this road to the set of roads
+		return chosenMove;
+	}
+	
+	
 	public Move play(Building request, Land land) {
 		// find all valid building locations and orientations
 		ArrayList<Move> moves = new ArrayList<Move>();
@@ -87,7 +160,7 @@ public class DummyPlayer implements pentos.sim.Player {
 			}
 		}
 	}
-
+	
 	// build shortest sequence of road cells to connect to a set of cells b
 	private Set<Cell> findShortestRoad(Set<Cell> b, Land land) {
 		Set<Cell> output = new HashSet<Cell>();

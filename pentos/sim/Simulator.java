@@ -22,7 +22,7 @@ class Simulator {
 	String group = "g6";
 	Class <Player> g_class = null;
 	Class <Sequencer> s_class = null;
-	String sequencer = "industrialization";
+	String sequencer = "g3";
 	long cpu_time_ms = 300 * 1000;
 	String tournament_path = null;
 	// long[] timeout = new long [] {1000, 10000, 1000};
