@@ -7,6 +7,7 @@ import pentos.sim.Cell;
 import pentos.sim.Land;
 
 public class BruteForcePlanner implements Planner {
+	static int maxTries=20;
 
 	@Override
 	public Action makeAPlan(Player player, Building request, Land land) {
@@ -21,6 +22,7 @@ public class BruteForcePlanner implements Planner {
 	}
 
 	public Action bruteForceResidenceSolution(Player player, Building request, Land land) {
+		int tries=0;
 		double score=-100.0;
 		Action toTake=new Action();
 		for (int i = 0; i < land.side; i++) {
@@ -46,13 +48,20 @@ public class BruteForcePlanner implements Planner {
 								System.out.println("Actin rejected in planner");
 								continue;
 							}
-								
+
+							/* Optimization: Try only limited solutions. */
+							if(tries>=maxTries){
+								System.out.println("Tried "+tries+" solutions already. Choose the best one.");
+								System.out.println("Optimal solution has score: "+score);
+								return toTake;
+							}
 							
 							double thisScore=PlanEvaluator.evaluateLastMinutePlan(player, toCheck, land);
 							if(thisScore>score){
 								score=thisScore;
 								toTake=toCheck;
 							}
+							tries++;
 						}
 					}
 				}
@@ -63,6 +72,7 @@ public class BruteForcePlanner implements Planner {
 	}
 
 	public Action bruteForceFactorySolution(Player player, Building request, Land land) {
+		int tries=0;
 		double score=-100.0;
 		Action toTake=new Action();
 		for (int i = land.side-1; i >= 0; i--) {
@@ -89,12 +99,19 @@ public class BruteForcePlanner implements Planner {
 								continue;
 							}
 							
+							/* Optimization: Try only limited solutions. */
+							if(tries>=maxTries){
+								System.out.println("Tried "+tries+" solutions already. Choose the best one.");
+								System.out.println("Optimal solution has score: "+score);
+								return toTake;
+							}
 							
 							double thisScore=PlanEvaluator.evaluateLastMinutePlan(player, toCheck, land);
 							if(thisScore>score){
 								score=thisScore;
 								toTake=toCheck;
 							}
+							tries++;
 						}
 					}
 

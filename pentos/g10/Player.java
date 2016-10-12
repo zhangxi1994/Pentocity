@@ -42,6 +42,9 @@ public class Player extends pentos.g0.Player {
 	/* A couple of planners working for the player */
 	public Planner packToCornerPlanner = new PackToCornerPlanner();
 	public Planner bruteForcePlanner = new BruteForcePlanner();
+	public Planner dispatchingPlanner=new DispatchingPlanner();
+	
+	 public int[] factoryRows;
 
 	@Override
 	public void init() { 
@@ -60,10 +63,10 @@ public class Player extends pentos.g0.Player {
 		residenceStart.add(new Cell(0, 0));
 		
 		/* Change: Add more cells as candidates */
-		for(int i=0;i<5;i++){
-			residenceStart.add(new Cell(i,0));
+		for(int i=0;i<land.side;i++){
+//			residenceStart.add(new Cell(i,0));
 			residenceStart.add(new Cell(0,i));
-			factoryStart.add(new Cell(land.side-i,land.side-1));
+//			factoryStart.add(new Cell(land.side-i,land.side-1));
 			factoryStart.add(new Cell(land.side-1,land.side-i));
 		}
 
@@ -83,6 +86,11 @@ public class Player extends pentos.g0.Player {
 		vacantBorders.addAll(borders);
 
 		initialized = true;
+		
+		factoryRows = new int[land.side];
+        for (int i = 0; i < land.side; i++) {
+            factoryRows[i] = 0;
+        }
 	}
 
 	@Override
@@ -94,10 +102,34 @@ public class Player extends pentos.g0.Player {
 		boolean valid = false;
 		Action willDo = new Action();
 		try {
-			willDo = packToCornerPlanner.makeAPlan(this, request, land);
-			if (willDo.getStartPoint() == null) {
+//			willDo = packToCornerPlanner.makeAPlan(this, request, land);
+			willDo = dispatchingPlanner.makeAPlan(this, request, land);
+			if (willDo==null||willDo.getStartPoint() == null) {
 				System.out.println("Empty move");
 			} else {
+				//Compromise: Remove unbuildable parks and ponds
+				Set<Cell> combined=ToolBox.combineSets(willDo.getAbsoluteBuildingCells(),willDo.getRoadCells());
+				Set<Cell> keepParks=new HashSet<>();
+				for(Cell c:willDo.getParkCells()){
+					if(!land.unoccupied(c)||combined.contains(c)){
+						System.out.println("Error: Park "+c+" is not available! Need to check out why.");
+					}else{
+						keepParks.add(c);
+					}
+				}
+				willDo.setParkCells(keepParks);
+				
+				combined.addAll(willDo.getParkCells());
+				Set<Cell> keepWater=new HashSet<>();
+				for(Cell c:willDo.getWaterCells()){
+					if(!land.unoccupied(c)||combined.contains(c)){
+						System.out.println("Error: Water "+c+" is not available! Need to check out why.");
+					}else{
+						keepWater.add(c);
+					}
+				}
+				willDo.setWaterCells(keepWater);
+				
 				valid = PlanEvaluator.validateMove(willDo, this, land);
 			}
 		} catch (Exception e) {
@@ -124,17 +156,17 @@ public class Player extends pentos.g0.Player {
 		}
 		
 		/* Pre-planned roads */
-		Cell anchor=new Cell(0,land.side/2-1);
-		if(land.unoccupied(anchor)){
-			Set<Cell> roadPlan=willDo.getRoadCells();
-			System.out.println("Build pre-planned roads.");
-			for(int i=0;i<10;i++){
-				roadPlan.add(new Cell(i,land.side/2-1));
-				roadPlan.add(new Cell(land.side-1-i,land.side/2-1));
-				roadPlan.add(new Cell(land.side/2-1,i));
-				roadPlan.add(new Cell(land.side/2-1,land.side-1-i));
-			}
-		}
+//		Cell anchor=new Cell(0,land.side/2-1);
+//		if(land.unoccupied(anchor)){
+//			Set<Cell> roadPlan=willDo.getRoadCells();
+//			System.out.println("Build pre-planned roads.");
+//			for(int i=0;i<10;i++){
+//				roadPlan.add(new Cell(i,land.side/2-1));
+//				roadPlan.add(new Cell(land.side-1-i,land.side/2-1));
+//				roadPlan.add(new Cell(land.side/2-1,i));
+//				roadPlan.add(new Cell(land.side/2-1,land.side-1-i));
+//			}
+//		}
 
 		/* Update related neighbors */
 
@@ -253,4 +285,8 @@ public class Player extends pentos.g0.Player {
 		factoryStart.removeAll(toOccupy);
 		factoryStart.addAll(avail);
 	}
+	public void updateFactoryRows(int row, int value)
+    {
+        factoryRows[row] = value;
+    }
 }
