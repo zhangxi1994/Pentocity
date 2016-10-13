@@ -233,6 +233,8 @@ public class Player implements pentos.sim.Player {
 				}
 			}
 		}
+		
+		// Pointer to set of possible rows
 		Set<Row> possibleRows;
 		if (is5) {
 			possibleRows = Grid.getResidenceRows().get(5);
@@ -247,8 +249,9 @@ public class Player implements pentos.sim.Player {
 			rowSize = 5;
 		else if (is4)
 			rowSize = 4;
+
+		// Row doesn't exist for this size, generate new set
 		if (possibleRows == null) {
-			// row doesn't exits, generate row dynamically
 			if (Grid.generatable(rowSize, 2)) {
 				Grid.generateResidenceRow(rowSize);
 				possibleRows = Grid.getResidenceRows().get(rowSize);
@@ -256,8 +259,8 @@ public class Player implements pentos.sim.Player {
 		}
 
 		/*
-		 * Now we have the rotation we want, with the set of rows we can put it
-		 * in
+		 * Now we have the set of rotations we can use, 
+		 * and the set of rows we can put it in
 		 */
 
 		int bestOffSet = 0;
@@ -291,16 +294,15 @@ public class Player implements pentos.sim.Player {
 			}
 		}
 		
+		// Row exits, but it is unbuildable, generate another row if possible
 		if (bestRow == null) {
-			// row exits, but it is unbuildable, generate another row
-			// dynamically
 			if (Grid.generatable(rowSize, 2)) {
 				Grid.generateResidenceRow(rowSize);
 				possibleRows = Grid.getResidenceRows().get(rowSize);
 			}
 		}
 
-		// try again
+		// try same thing again
 		for (int rotation : validRotations) {
 			Building rotatedRequest = request.rotations()[rotation];
 			for (Row row : possibleRows) {
@@ -327,58 +329,100 @@ public class Player implements pentos.sim.Player {
 			}
 		}
 		
-		Building rotatedRequest;
-		if (bestRotation != -1) {
-			rotatedRequest = request.rotations()[bestRotation];
-		} else {
-			rotatedRequest = request.rotations()[validRotations.get(0)];
-			bestRotation = validRotations.get(0);
-		}
-		
 		// This is changed to true if there is no promotion
 		boolean padWithWater = false;
 		
 		// If you still didn't find anything and you were length 3, promote to 4
 		if (bestRow == null && !is4 && !is5) {
+			// Promoting to 4
 			possibleRows = Grid.getResidenceRows().get(4);
 			if (possibleRows != null) {
-				for (Row row : possibleRows) {
-					int offSet = (row.getRoadLocation() > row.getStart()) ? 1 : 0;
-					int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest, offSet);
-					if (positionInRow >= 0 && positionInRow > bestLocation) {
-						bestLocation = positionInRow;
-						bestRow = row;
-						bestOffSet = offSet;
-					}
-				}
-			}
-			// If you still haven't found anything, promote to 5
-			if (bestRow == null) {
-				possibleRows = Grid.getResidenceRows().get(5);
-				if (possibleRows != null) {
+				for (int rotation : validRotations) {
+					Building rotatedRequest = request.rotations()[rotation];
 					for (Row row : possibleRows) {
-						int offSet = (row.getRoadLocation() > row.getStart()) ? 2 : 0;
+						int offSet = 0;
 						int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest, offSet);
-						if (positionInRow >= 0 && positionInRow > bestLocation) {
-							bestLocation = positionInRow;
-							bestRow = row;
-							bestOffSet = offSet;
+						if (positionInRow >= 0) {
+							if (positionInRow > bestLocation) {
+								bestLocation = positionInRow;
+								bestRow = row;
+								bestOffSet = offSet;
+								bestRotation = rotation;
+								leastLeftCells = countCellsOnLeft(rotatedRequest);
+							} else if (positionInRow == bestLocation) {
+								int leftCells = countCellsOnLeft(rotatedRequest);
+								if (leftCells < leastLeftCells) {
+									bestLocation = positionInRow;
+									bestRow = row;
+									bestOffSet = offSet;
+									bestRotation = rotation;
+									leastLeftCells = leftCells;
+								}
+							}
 						}
 					}
 				}
-
 			}
-		} else if (bestRow == null && is4) {// If you still didn't find anything
-											// and you were length 4
+
+			// Still nothing, promote to 5
+			if (bestRow == null) {
+				// Promoting to 5
+				possibleRows = Grid.getResidenceRows().get(5);
+				if (possibleRows != null) {
+					for (int rotation : validRotations) {
+						Building rotatedRequest = request.rotations()[rotation];
+						for (Row row : possibleRows) {
+							int offSet = 0;
+							int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest, offSet);
+							if (positionInRow >= 0) {
+								if (positionInRow > bestLocation) {
+									bestLocation = positionInRow;
+									bestRow = row;
+									bestOffSet = offSet;
+									bestRotation = rotation;
+									leastLeftCells = countCellsOnLeft(rotatedRequest);
+								} else if (positionInRow == bestLocation) {
+									int leftCells = countCellsOnLeft(rotatedRequest);
+									if (leftCells < leastLeftCells) {
+										bestLocation = positionInRow;
+										bestRow = row;
+										bestOffSet = offSet;
+										bestRotation = rotation;
+										leastLeftCells = leftCells;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		} else if (bestRow == null && is4) {
+			// If you still didn't find anything and you were length 4
 			possibleRows = Grid.getResidenceRows().get(5);
 			if (possibleRows != null) {
-				for (Row row : possibleRows) {
-					int offSet = (row.getRoadLocation() > row.getStart()) ? 1 : 0;
-					int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest, offSet);
-					if (positionInRow >= 0 && positionInRow > bestLocation) {
-						bestLocation = positionInRow;
-						bestRow = row;
-						bestOffSet = offSet;
+				for (int rotation : validRotations) {
+					Building rotatedRequest = request.rotations()[rotation];
+					for (Row row : possibleRows) {
+						int offSet = 0;
+						int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest, offSet);
+						if (positionInRow >= 0) {
+							if (positionInRow > bestLocation) {
+								bestLocation = positionInRow;
+								bestRow = row;
+								bestOffSet = offSet;
+								bestRotation = rotation;
+								leastLeftCells = countCellsOnLeft(rotatedRequest);
+							} else if (positionInRow == bestLocation) {
+								int leftCells = countCellsOnLeft(rotatedRequest);
+								if (leftCells < leastLeftCells) {
+									bestLocation = positionInRow;
+									bestRow = row;
+									bestOffSet = offSet;
+									bestRotation = rotation;
+									leastLeftCells = leftCells;
+								}
+							}
+						}
 					}
 				}
 			}
@@ -386,8 +430,15 @@ public class Player implements pentos.sim.Player {
 			// No promotion, so should pad
 			padWithWater = true;
 		}
+		
+		// Checking which rotation was selected
+		if (bestRotation == -1) {
+			bestRotation = validRotations.get(0);
+		}
 
-		// If it is still null, it means we didn't find the row to place it
+		// If it is still null, it means we didn't find the row to 
+		// place it (even after all the effort). Otherwise, check
+		// if we want to build a new row at this point
 		if (bestRow == null) {
 			return new Move(false);
 		} else {
@@ -400,7 +451,7 @@ public class Player implements pentos.sim.Player {
 			}
 		}
 
-		// All decided, now generate the complete move
+		// Everything is decided, now generate the complete move
 		Padding padding = new MyPadding();
 		if (bestRow.getRecentlyPadded() || !padWithWater) {
 			padWithWater = false;
