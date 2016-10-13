@@ -14,7 +14,7 @@ public class Sequencer implements pentos.sim.Sequencer {
     }
     
     public Building next() {
-	if (gen.nextDouble() >= 0.7)
+	if (gen.nextDouble() >= 0)
 	    return randomFactory();
 	else
 	    return randomResidence();
@@ -41,13 +41,12 @@ public class Sequencer implements pentos.sim.Sequencer {
 		Set<Cell> factory = new HashSet<Cell>();
 		int width = gen.nextInt(4);
 		int height = gen.nextInt(4);
-		for (int i = 0; i < width + 2; i++) {
+		factory.add(new Cell(0, 0));
+		/*for (int i = 0; i < width + 2; i++) {
 			for (int j = 0; j < height + 2; j++) {
-		//for (int i = 0; i < 1; i++) {
-			//for (int j = 0; j < height + 2; j++) {
 				factory.add(new Cell(i, j));
 			}
-		}
+		}*/
 		return new Building(factory.toArray(new Cell[factory.size()]), Building.Type.FACTORY);
 	}
 	
