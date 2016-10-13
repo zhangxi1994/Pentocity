@@ -11,7 +11,6 @@ import pentos.sim.Building.Type;
 import pentos.sim.Cell;
 import pentos.sim.Land;
 import pentos.sim.Move;
-import pentos.g0.*;
 
 public class Player implements pentos.sim.Player {
 
