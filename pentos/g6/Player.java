@@ -339,7 +339,7 @@ public class Player implements pentos.sim.Player {
 				for (int rotation : validRotations) {
 					Building rotatedRequest = request.rotations()[rotation];
 					for (Row row : possibleRows) {
-						int offSet = 0;
+						int offSet = (row.getRoadLocation() > row.getStart()) ? 1 : 0;
 						int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest, offSet);
 						if (positionInRow >= 0) {
 							if (positionInRow > bestLocation) {
@@ -371,7 +371,7 @@ public class Player implements pentos.sim.Player {
 					for (int rotation : validRotations) {
 						Building rotatedRequest = request.rotations()[rotation];
 						for (Row row : possibleRows) {
-							int offSet = 0;
+							int offSet = (row.getRoadLocation() > row.getStart()) ? 2 : 0;
 							int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest, offSet);
 							if (positionInRow >= 0) {
 								if (positionInRow > bestLocation) {
@@ -402,7 +402,7 @@ public class Player implements pentos.sim.Player {
 				for (int rotation : validRotations) {
 					Building rotatedRequest = request.rotations()[rotation];
 					for (Row row : possibleRows) {
-						int offSet = 0;
+						int offSet = (row.getRoadLocation() > row.getStart()) ? 1 : 0;
 						int positionInRow = residenceRowExtendPosition(land, row, rotatedRequest, offSet);
 						if (positionInRow >= 0) {
 							if (positionInRow > bestLocation) {
