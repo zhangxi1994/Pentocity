@@ -48,8 +48,8 @@ public class DummyPlayer implements pentos.sim.Player {
 		}
 		else if(request.type == Building.Type.RESIDENCE){
 			//Searching top-down, right-left
-			for(int j=0; j<land.side; j++){
-				for(int i=land.side; i>=0; i--){
+			for(int i=0; i<land.side; i++){
+				for(int j=land.side; j>=0; j--){
 					Cell p = new Cell(i,j);
 					Building[] rotations = request.rotations();
 					for(int ri=0; ri < rotations.length; ri++){

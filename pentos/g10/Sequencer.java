@@ -51,5 +51,6 @@ public class Sequencer implements pentos.sim.Sequencer {
 	}
 	return new Building(factory.toArray(new Cell[factory.size()]), Building.Type.FACTORY);
     }
+  
     
 }

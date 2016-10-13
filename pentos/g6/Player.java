@@ -16,14 +16,14 @@ import pentos.g0.*;
 public class Player implements pentos.sim.Player {
 
 	private static int rejectNum = 0;
-	
-	private static int FACTORY_THRESHOLD = 22;
-	private static int RESIDENCE_THRESHOLD = 28;
 
 	private enum ResidenceType {
 		LINE, L_FACE, R_FACE, INV_L, L, R_BLK, L_BLK, INV_LIGHTNING, LIGHTNING, T, U, RANGLE, STEPS, PLUS, L_TOTEM, R_TOTEM, INV_Z, Z
 	};
 
+
+	int numberOfRejections = 0; // Counts the number of rejections.
+	DummyPlayer dummyplayer = new DummyPlayer();
 	@Override
 	public void init() {
 		// Grid.initializeFactoryRows();
@@ -32,7 +32,8 @@ public class Player implements pentos.sim.Player {
 
 	@Override
 	public Move play(Building request, Land land) {
-
+		/*dummyplayer.initializeRoadCells(land);
+		return dummyplayer.play(request, land);*/
 		if (rejectNum == 2) {
 			Move move;
 			if (request.getType() == Type.FACTORY) {
@@ -43,10 +44,8 @@ public class Player implements pentos.sim.Player {
 			if (move.accept == true) {
 				return move;
 			}
-			
-			DummyPlayer dummyplayer = new DummyPlayer();
 			dummyplayer.initializeRoadCells(land);
-			return dummyplayer.leastRoadMove(request, land);
+			return dummyplayer.play(request, land);
 		}
 		if (request.getType() == Type.FACTORY) {
 			Move move = generateFactoryMove(request, land);
@@ -70,7 +69,7 @@ public class Player implements pentos.sim.Player {
 
 		int[] factoryDimensions = getBuildingDimensions(request);
 
-		System.out.println("Factory Request: " + factoryDimensions[0] + " " + factoryDimensions[1]);
+		System.out.println("Factory Request: " + factoryDimensions[0] + "\t" + factoryDimensions[1]);
 
 		Row bestRow = null;
 		int minLength = -1;
@@ -81,9 +80,8 @@ public class Player implements pentos.sim.Player {
 			promotionBump++;
 			
 			// This is checking for the best row if you use the first dimension of the factory
-			if (factoryDimensions[0] + promotionBump <= 7
-					&& Grid.getFactoryRows().containsKey(factoryDimensions[0] + promotionBump) ) {
-				
+			if (factoryDimensions[0] + promotionBump > 1 && factoryDimensions[0] + promotionBump <= 5 && Grid.getFactoryRows().containsKey(factoryDimensions[0] + promotionBump) ) {
+				// Gotta make sure it's a valid dimension request
 				for (Row row : Grid.getFactoryRows().get(factoryDimensions[0] + promotionBump)) {
 					if (!factoryRowExtendable(row, land, request.rotations()[0])) {	
 						continue;
@@ -101,16 +99,14 @@ public class Player implements pentos.sim.Player {
 						}
 					}
 				}
-				
 			}
-			
 			// This is checking for the best row if you use the second dimension
 			// of the factory
 			if (factoryDimensions[0] != factoryDimensions[1]) {
 				// This makes sure that Dim2 isn't the same as Dim1
-				if (factoryDimensions[1] + promotionBump <= 7 
-						&& Grid.getFactoryRows().containsKey(factoryDimensions[1] + promotionBump) ) {
-					
+				if (factoryDimensions[1] + promotionBump > 1 && factoryDimensions[1] + promotionBump <= 5 && Grid.getFactoryRows().containsKey(factoryDimensions[1] + promotionBump) ) {
+					// This makes sure it's a valid dimension request
+
 					for (Row row : Grid.getFactoryRows().get(factoryDimensions[1] + promotionBump)) {
 						if (!factoryRowExtendable(row, land, request.rotations()[1])) {
 							continue;
@@ -135,7 +131,7 @@ public class Player implements pentos.sim.Player {
 			if(bestRow==null && promotionBump==0){
 			//if (promotionBump==0&&Grid.getFactoryRows().get(factoryDimensions[1] + promotionBump) == null) {
 				int max = Math.max(factoryDimensions[0], factoryDimensions[1]);
-				int min = Math.min(factoryDimensions[0], factoryDimensions[1]);
+				int min = Math.max(factoryDimensions[0], factoryDimensions[1]);
 				
 				if (Grid.generatable(max, 1)) {
 					Grid.generateFactoryRow(max);
@@ -143,7 +139,7 @@ public class Player implements pentos.sim.Player {
 				}
 				else if(Grid.generatable(min, 1)){
 					Grid.generateFactoryRow(min);
-					promotionBump=-1; //This is to make sure the loop does it's initial run again.
+					promotionBump=-1; //This is to make sure the loop does it's first initial run again.
 				}
 			}
 			///////////////////////////////////////////////////////////////////////////////////////////
@@ -152,22 +148,15 @@ public class Player implements pentos.sim.Player {
 		// Suppose no best row was found, you should reject the request
 		if (bestRow == null) {
 			System.out.println("Rejecting because no bestRow was found.");
+			numberOfRejections++;
 			return new Move(false);
-		} else {
-			// If threshold is exceeded, build a new row of the same size
-			if (bestRow.getCurrentLocation() > FACTORY_THRESHOLD) {
-				if (Grid.generatable(bestRow.size(), 1)) {
-					System.out.println("Building new factory row of size " + bestRow.size());
-					Grid.generateFactoryRow(bestRow.size());
-				}
-			}
 		}
 
 		boolean accept = true;
 		int yLoc = (bestRow.getRoadLocation() > bestRow.getStart()) ? bestRow.getStart() + promotionBump
 				: bestRow.getStart();
 		// int yLoc = bestRow.getStart();
-		System.out.println("Building factory at " + bestRow.getCurrentLocation() + ", " + yLoc);
+		System.out.println("Placing at " + bestRow.getCurrentLocation() + ", " + yLoc);
 		Cell location = new Cell(yLoc, bestRow.getCurrentLocation());
 		int rotation = (rotate) ? 1 : 0;
 
@@ -182,7 +171,10 @@ public class Player implements pentos.sim.Player {
 			int extension = (rotate) ? factoryDimensions[0] : factoryDimensions[1];
 			for (int i = 0; i < extension; i++) {
 				if (!land.unoccupied(bestRow.getRoadLocation(), bestRow.getCurrentLocation() + i)) {
-					
+					// This means it should already be road, so don't do
+					// anything. There might be a logic issue here.
+					// return new Move(false);
+					continue;
 				} else {
 					road.add(new Cell(bestRow.getRoadLocation(), bestRow.getCurrentLocation() + i));
 				}
@@ -388,15 +380,8 @@ public class Player implements pentos.sim.Player {
 
 		// If it is still null, it means we didn't find the row to place it
 		if (bestRow == null) {
+			numberOfRejections++;
 			return new Move(false);
-		} else {
-			// If threshold is exceeded, build a new row of the same size
-			if (bestRow.getCurrentLocation() < RESIDENCE_THRESHOLD) {
-				if (Grid.generatable(bestRow.size(), 1)) {
-					System.out.println("Building new residence row of size " + bestRow.size());
-					Grid.generateResidenceRow(bestRow.size());
-				}
-			}
 		}
 
 		// All decided, now generate the complete move
@@ -413,7 +398,7 @@ public class Player implements pentos.sim.Player {
 		if (!land.buildable(move.request.rotations()[move.rotation], move.location)) {
 			System.out.println("***Cannot build***" + move.location.i + "," + move.location.j);
 		}
-		System.out.println("Building residence at " + move.location.i + "," + move.location.j);
+		System.out.println("Building at " + move.location.i + "," + move.location.j);
 		// System.out.println("***Can build***");
 		return move;
 	}
@@ -445,15 +430,6 @@ public class Player implements pentos.sim.Player {
 		int topCell = row.getStart();
 		int leftCell = row.getCurrentLocation();
 
-		if (row.getRoadLocation() != -1 
-				&& row.getRoadLocation() != 50
-				&& row.getCurrentLocation() < 50
-				&& !land.unoccupied(row.getRoadLocation(), row.getCurrentLocation())
-				&& land.getCellType(row.getRoadLocation(), row.getCurrentLocation()) != Cell.Type.ROAD) {
-			// If road position is occupied and isn't a road already, can't extend
-			return false;
-		}
-		
 		return land.buildable(factory, new Cell(topCell, leftCell));
 
 	}
