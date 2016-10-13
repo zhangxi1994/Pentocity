@@ -1,4 +1,4 @@
-package pentos.g0;
+package pentos.g8;
 
 import pentos.sim.Cell;
 import pentos.sim.Building;
