@@ -44,9 +44,13 @@ public class Player implements pentos.sim.Player {
 				return move;
 			}
 			
-			DummyPlayer dummyplayer = new DummyPlayer();
+			G3Player g3p = new G3Player();
+			g3p.initializeRoadCells(land);
+			return g3p.play(request, land);
+			
+			/*DummyPlayer dummyplayer = new DummyPlayer();
 			dummyplayer.initializeRoadCells(land);
-			return dummyplayer.leastRoadMove(request, land);
+			return dummyplayer.leastRoadMove(request, land);*/
 		}
 		if (request.getType() == Type.FACTORY) {
 			Move move = generateFactoryMove(request, land);
