@@ -44,11 +44,8 @@ public class Player implements pentos.sim.Player {
 				return move;
 			}
 			
-			/*G3Player g3p = new G3Player();
-			g3p.initializeRoadCells(land);
-			return g3p.play(request, land);*/
 			
-			System.out.println("Request forwarded to dummy player");
+			//System.out.println("Request forwarded to dummy player");
 			DummyPlayer dummyplayer = new DummyPlayer();
 			dummyplayer.initializeRoadCells(land);
 			return dummyplayer.leastRoadMove(request, land);
@@ -172,9 +169,9 @@ public class Player implements pentos.sim.Player {
 		int yLoc = (bestRow.getRoadLocation() > bestRow.getStart()) ? bestRow.getStart() + promotionBump
 				: bestRow.getStart();
 		// int yLoc = bestRow.getStart();
-		System.out.println("Building factory at " + bestRow.getCurrentLocation() + ", " + yLoc);
+		//System.out.println("Building factory at " + bestRow.getCurrentLocation() + ", " + yLoc);
 		if (!land.buildable(request, new Cell(yLoc, bestRow.getCurrentLocation()))) {
-			System.out.println("Cannot build this factory.");
+			//System.out.println("Cannot build this factory.");
 		}
 		Cell location = new Cell(yLoc, bestRow.getCurrentLocation());
 		int rotation = (rotate) ? 1 : 0;
@@ -472,7 +469,7 @@ public class Player implements pentos.sim.Player {
 		if (!land.buildable(move.request.rotations()[move.rotation], move.location)) {
 			//System.out.println("***Cannot build***" + move.location.i + "," + move.location.j);
 		}
-		System.out.println("Building residence at " + move.location.i + "," + move.location.j);
+		//System.out.println("Building residence at " + move.location.i + "," + move.location.j);
 		// System.out.println("***Can build***");
 		return move;
 	}

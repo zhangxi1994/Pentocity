@@ -33,19 +33,19 @@ public class Sequencer implements pentos.sim.Sequencer {
 	public Building next() {
 		double sample = rand.nextDouble();
 		Set<Cell> residence = new HashSet<>();
-		if (sample > threshold) {
+		//if (sample > threshold) {
 			residence.add(new Cell(0,0));
 			residence.add(new Cell(0,1));
 			residence.add(new Cell(0,2));
-			residence.add(new Cell(1,2));
-			residence.add(new Cell(2,2));
-		} else {
+			residence.add(new Cell(0,3));
+			residence.add(new Cell(0,4));
+		/*} else {
 			residence.add(new Cell(0,0));
 			residence.add(new Cell(1,0));
 			residence.add(new Cell(1,1));
 			residence.add(new Cell(2,1));
 			residence.add(new Cell(3,1));
-		}
+		}*/
 		return new Building(residence.toArray(new Cell[residence.size()]), Building.Type.RESIDENCE);
 	}
 

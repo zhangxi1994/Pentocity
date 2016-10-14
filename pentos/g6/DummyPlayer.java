@@ -95,7 +95,7 @@ public class DummyPlayer implements pentos.sim.Player {
 			}
 			if(checkEmptyNeighborRoadAdj && moves2.isEmpty()){
 				checkEmptyNeighborRoadAdj=false;
-				System.out.println("Failed using neighborsRoadChecking");
+				//System.out.println("Failed using neighborsRoadChecking");
 			}
 			else{
 				break;
