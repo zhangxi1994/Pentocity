@@ -70,9 +70,9 @@ public class MyPadding implements Padding {
 			}
 		}
 		if (oneLineWater) {
-			System.out.println("One line water:");
+			//System.out.println("One line water:");
 			water = oneLineWaterCells;
-			printCells(water);
+			//printCells(water);
 		} else {
 			boolean buildwater = false;
 			for (int i = row.getEnd() - 1, j = location; i >= row.getStart() && buildWater; i--) {
@@ -223,23 +223,58 @@ public class MyPadding implements Padding {
 			}
 		}
 		// EXTEND PARK TO TOUCH BUILDING
-		if (row.getParkLocation() < row.getStart()) {
-			// park is on top
-			if (offSet != 0) {
-				for (int i = row.getStart(); i < rowTop; i++) {
-					if (hasCell[i][rowMinCol] == 0 && land.unoccupied(i, rowMinCol))
-						park.add(new Cell(i, rowMinCol));
+		if(row.getParkLocation()<=49){
+			if (row.getParkLocation() < row.getStart()) {
+				// park is on top
+				if (offSet != 0) {
+					for (int i = row.getStart(); i < rowTop; i++) {
+						if (hasCell[i][rowMinCol] == 0 && land.unoccupied(i, rowMinCol))
+							park.add(new Cell(i, rowMinCol));
+					}
+					/*Set<Cell> extraPark = new HashSet<>(); 
+					for (int i = row.getStart(); i < rowTop; i++) {
+						if (hasCell[i][colMax] == 0 && land.unoccupied(i, colMax))
+							extraPark.add(new Cell(i, colMax));
+						if (hasCell[i][colMax] == 0 && !land.unoccupied(i, colMax)){
+							extraPark.clear();
+							break;
+						}
+					}
+					if(extraPark.size()!=0) park.addAll(extraPark);
+					else{
+						for (int i = row.getStart(); i < rowTop; i++) {
+							if (hasCell[i][rowMinCol] == 0 && land.unoccupied(i, rowMinCol))
+								park.add(new Cell(i, rowMinCol));
+						}
+					}*/
 				}
-			}
-		} else {
-			// park is at bottom
-			if (rowTop + rowMax < row.getParkLocation() - 1) {
-				for (int i = rowTop + rowMax + 1; i < row.getParkLocation(); i++) {
-					if (hasCell[i][rowMaxCol] == 0 && land.unoccupied(i, rowMaxCol))
-						park.add(new Cell(i, rowMaxCol));
+			} else {
+				// park is at bottom
+				if (rowTop + rowMax < row.getParkLocation() - 1) {
+					for (int i = rowTop + rowMax + 1; i < row.getParkLocation(); i++) {
+						if (hasCell[i][rowMaxCol] == 0 && land.unoccupied(i, rowMaxCol))
+							park.add(new Cell(i, rowMaxCol));
+					}
+					/*Set<Cell> extraPark = new HashSet<>(); 
+					for (int i = rowTop + rowMax + 1; i < row.getParkLocation(); i++) {
+						if (hasCell[i][colMax] == 0 && land.unoccupied(i, colMax))
+							extraPark.add(new Cell(i, colMax));
+						if (hasCell[i][colMax] == 0 && !land.unoccupied(i, colMax)){
+							extraPark.clear();
+							break;
+						}
+					}
+					if(extraPark.size()!=0) park.addAll(extraPark);
+					else{
+						for (int i = rowTop + rowMax + 1; i < row.getParkLocation(); i++) {
+							if (hasCell[i][rowMinCol] == 0 && land.unoccupied(i, rowMinCol))
+								park.add(new Cell(i, rowMinCol));
+						}
+					}*/
 				}
 			}
 		}
+		
 		row.setCurrentLocation(location - 1);
 		if(water.size()<4) water.clear();
 		return new Move(true, request, new Cell(rowTop, location), rotation, road, water, park);
