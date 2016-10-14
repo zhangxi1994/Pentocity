@@ -442,7 +442,7 @@ public class Player implements pentos.sim.Player {
 		} else {
 			// If threshold is exceeded, build a new row of the same size
 			if (bestRow.getCurrentLocation() < RESIDENCE_THRESHOLD) {
-				if (Grid.generatable(bestRow.size(), 1)) {
+				if (Grid.generatable(bestRow.size(), 2)) {
 					System.out.println("Building new residence row of size " + bestRow.size());
 					Grid.generateResidenceRow(bestRow.size());
 				}
