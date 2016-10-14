@@ -227,8 +227,8 @@ public class MyPadding implements Padding {
 			// park is on top
 			if (offSet != 0) {
 				for (int i = row.getStart(); i < rowTop; i++) {
-					if (hasCell[i][rowMinCol] == 0 && land.unoccupied(i, rowMinCol))
-						park.add(new Cell(i, rowMinCol));
+					if (hasCell[i][rowMaxCol] == 0 && land.unoccupied(i, rowMaxCol))
+						park.add(new Cell(i, rowMaxCol));
 				}
 			}
 		} else {

@@ -10,7 +10,7 @@ import java.util.*;
 public class G3Player implements pentos.sim.Player {
 
 	private int WATER = 0;
-	private int PARK = 1;
+	private int PARK = 0;
 	private static final int RESIDENCESIZE = 5;
 	private Random gen = new Random();
 	public Set<Cell> road_cells = new HashSet<Cell>();
