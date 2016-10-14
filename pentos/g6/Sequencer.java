@@ -37,8 +37,8 @@ public class Sequencer implements pentos.sim.Sequencer {
 			residence.add(new Cell(0,0));
 			residence.add(new Cell(0,1));
 			residence.add(new Cell(0,2));
-			residence.add(new Cell(0,3));
-			residence.add(new Cell(0,4));
+			residence.add(new Cell(1,2));
+			residence.add(new Cell(2,2));
 		} else {
 			residence.add(new Cell(0,0));
 			residence.add(new Cell(1,0));

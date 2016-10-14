@@ -530,9 +530,37 @@ public class Player implements pentos.sim.Player {
 			if (land.buildable(residence, new Cell(row.getStart() + offSet, position))) {
 				if (roadRow >= 0 && roadRow <= 49) {
 					// Checking if roads haven't been blocked
-					int from = position, to = row.getCurrentLocation();
+					int to = row.getCurrentLocation();
 					if (to + 1 < land.side) {
 						to += 1;
+					}
+					
+					Iterator<Cell> it = residence.iterator();
+					int from;
+					if (roadRow > row.getStart()) {
+						// Road is at the bottom
+						int maxRow = 0;
+						int maxCol = 0;
+						while (it.hasNext()) {
+							Cell c = it.next();
+							if (c.i > maxRow) {
+								maxRow = c.i;
+								maxCol = 0;
+							} else if (c.i == maxRow && c.j > maxCol) {
+								maxCol = c.j;
+							}
+						}
+						from = position + maxCol;
+					} else {
+						// Road is on top
+						int maxCol = 0;
+						while (it.hasNext()) {
+							Cell c = it.next();
+							if (c.i == 0 && c.j > maxCol) {
+								maxCol = c.j;
+							}
+						}
+						from = position + maxCol;
 					}
 					
 					for (int j = from; j <= to; ++j) {
