@@ -18,7 +18,7 @@ import pentos.sim.Cell.Type;
 public class Sequencer implements pentos.sim.Sequencer {
 
 	private Random rand;
-	private double threshold = 0;
+	private double threshold = 0.0;
 	
 	@Override
 	public void init(Long seed) {

@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Set;
 
+import pentos.g10.RoadFinder;
 import pentos.sim.Building;
 import pentos.sim.Building.Type;
 import pentos.sim.Cell;
@@ -43,6 +44,11 @@ public class Player implements pentos.sim.Player {
 				return move;
 			}
 			
+			/*G3Player g3p = new G3Player();
+			g3p.initializeRoadCells(land);
+			return g3p.play(request, land);*/
+			
+			//System.out.println("Request forwarded to dummy player");
 			DummyPlayer dummyplayer = new DummyPlayer();
 			dummyplayer.initializeRoadCells(land);
 			return dummyplayer.leastRoadMove(request, land);
@@ -69,7 +75,7 @@ public class Player implements pentos.sim.Player {
 
 		int[] factoryDimensions = getBuildingDimensions(request);
 
-		System.out.println("Factory Request: " + factoryDimensions[0] + " " + factoryDimensions[1]);
+		//System.out.println("Factory Request: " + factoryDimensions[0] + " " + factoryDimensions[1]);
 
 		Row bestRow = null;
 		int minLength = -1;
@@ -150,13 +156,13 @@ public class Player implements pentos.sim.Player {
 
 		// Suppose no best row was found, you should reject the request
 		if (bestRow == null) {
-			System.out.println("Rejecting because no bestRow was found.");
+			//System.out.println("Rejecting because no bestRow was found.");
 			return new Move(false);
 		} else {
 			// If threshold is exceeded, build a new row of the same size
 			if (bestRow.getCurrentLocation() > FACTORY_THRESHOLD) {
 				if (Grid.generatable(bestRow.size(), 1)) {
-					System.out.println("Building new factory row of size " + bestRow.size());
+					//System.out.println("Building new factory row of size " + bestRow.size());
 					Grid.generateFactoryRow(bestRow.size());
 				}
 			}
@@ -166,7 +172,7 @@ public class Player implements pentos.sim.Player {
 		int yLoc = (bestRow.getRoadLocation() > bestRow.getStart()) ? bestRow.getStart() + promotionBump
 				: bestRow.getStart();
 		// int yLoc = bestRow.getStart();
-		System.out.println("Building factory at " + bestRow.getCurrentLocation() + ", " + yLoc);
+		//System.out.println("Building factory at " + bestRow.getCurrentLocation() + ", " + yLoc);
 		Cell location = new Cell(yLoc, bestRow.getCurrentLocation());
 		int rotation = (rotate) ? 1 : 0;
 
@@ -443,7 +449,7 @@ public class Player implements pentos.sim.Player {
 			// If threshold is exceeded, build a new row of the same size
 			if (bestRow.getCurrentLocation() < RESIDENCE_THRESHOLD) {
 				if (Grid.generatable(bestRow.size(), 2)) {
-					System.out.println("Building new residence row of size " + bestRow.size());
+					//System.out.println("Building new residence row of size " + bestRow.size());
 					Grid.generateResidenceRow(bestRow.size());
 				}
 			}
@@ -461,9 +467,9 @@ public class Player implements pentos.sim.Player {
 		Move move = padding.getPadding(request, bestRotation, land, bestRow, bestLocation, padWithWater, bestOffSet);
 		
 		if (!land.buildable(move.request.rotations()[move.rotation], move.location)) {
-			System.out.println("***Cannot build***" + move.location.i + "," + move.location.j);
+			//System.out.println("***Cannot build***" + move.location.i + "," + move.location.j);
 		}
-		System.out.println("Building residence at " + move.location.i + "," + move.location.j);
+		//System.out.println("Building residence at " + move.location.i + "," + move.location.j);
 		// System.out.println("***Can build***");
 		return move;
 	}
@@ -519,14 +525,29 @@ public class Player implements pentos.sim.Player {
 			throw new RuntimeException("Incorrect building type inputted.");
 		}
 
-		int position = row.getCurrentLocation();
+		int position = row.getCurrentLocation(), roadRow = row.getRoadLocation();
 		while (position >= 0) {
 			if (land.buildable(residence, new Cell(row.getStart() + offSet, position))) {
+				if (roadRow >= 0 && roadRow <= 49) {
+					// Checking if roads haven't been blocked
+					int from = position, to = row.getCurrentLocation();
+					if (to + 1 < land.side) {
+						to += 1;
+					}
+					
+					for (int j = from; j <= to; ++j) {
+						// If the road is blocked to this place, cannot build in the row
+						if ((!land.unoccupied(roadRow, j)) && land.getCellType(roadRow, j) != Cell.Type.ROAD) {
+							return -1;
+						}
+					}
+				}
+				
 				return position;
 			}
 			position--;
 		}
-
+		
 		return -1;
 	}
 

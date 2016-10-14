@@ -70,9 +70,9 @@ public class MyPadding implements Padding {
 			}
 		}
 		if (oneLineWater) {
-			System.out.println("One line water:");
+			//System.out.println("One line water:");
 			water = oneLineWaterCells;
-			printCells(water);
+			//printCells(water);
 		} else {
 			boolean buildwater = false;
 			for (int i = row.getEnd() - 1, j = location; i >= row.getStart() && buildWater; i--) {
