@@ -85,7 +85,7 @@ public class DummyPlayer implements pentos.sim.Player {
 				if(roadCells == null){
 					continue;
 				}
-				else if(checkEmptyNeighborRoadAdj && !areNeighborsNextToRoad(mc.location.i, mc.location.j, mc.request, land, roadCells)){
+				else if(checkEmptyNeighborRoadAdj && !areNeighborsNextToRoad(mc.location.i, mc.location.j, mc.request.rotations()[mc.rotation], land, roadCells)){
 					continue;
 				}
 				else {
@@ -193,13 +193,13 @@ public class DummyPlayer implements pentos.sim.Player {
 		Set<Cell> emptyNeighbors = new HashSet<Cell>();
 		while (cIt.hasNext()) {
 			Cell c = cIt.next();
-			if (locJ + c.j + 1< land.side && land.getCellType(locI + c.i, locJ + c.j + 1) == Cell.Type.EMPTY)
+			if (locJ + c.j + 1 < land.side && land.getCellType(locI + c.i, locJ + c.j + 1) == Cell.Type.EMPTY)
 				emptyNeighbors.add(new Cell(locI + c.i, locJ + c.j + 1));
-			if (locJ + c.j - 1>= 0 && land.getCellType(locI + c.i, locJ + c.j - 1) == Cell.Type.EMPTY)
+			if (locJ + c.j - 1 >= 0 && land.getCellType(locI + c.i, locJ + c.j - 1) == Cell.Type.EMPTY)
 				emptyNeighbors.add(new Cell(locI + c.i, locJ + c.j - 1));
-			if (locI + c.i + 1< land.side && land.getCellType(locI + c.i + 1, locJ + c.j) == Cell.Type.EMPTY)
+			if (locI + c.i + 1 < land.side && land.getCellType(locI + c.i + 1, locJ + c.j) == Cell.Type.EMPTY)
 				emptyNeighbors.add(new Cell(locI + c.i + 1, locJ + c.j));
-			if (locI + c.i - 1>= 0 && land.getCellType(locI + c.i - 1, locJ + c.j) == Cell.Type.EMPTY)
+			if (locI + c.i - 1 >= 0 && land.getCellType(locI + c.i - 1, locJ + c.j) == Cell.Type.EMPTY)
 				emptyNeighbors.add(new Cell(locI + c.i - 1, locJ + c.j));
 		}
 //		for(Cell c : emptyNeighbors){
