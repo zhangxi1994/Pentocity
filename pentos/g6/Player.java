@@ -48,7 +48,7 @@ public class Player implements pentos.sim.Player {
 			g3p.initializeRoadCells(land);
 			return g3p.play(request, land);*/
 			
-			//System.out.println("Request forwarded to dummy player");
+			System.out.println("Request forwarded to dummy player");
 			DummyPlayer dummyplayer = new DummyPlayer();
 			dummyplayer.initializeRoadCells(land);
 			return dummyplayer.leastRoadMove(request, land);
@@ -86,11 +86,11 @@ public class Player implements pentos.sim.Player {
 			promotionBump++;
 			
 			// This is checking for the best row if you use the first dimension of the factory
-			if (factoryDimensions[0] + promotionBump <= 7
+			if (factoryDimensions[0] + promotionBump <= 5
 					&& Grid.getFactoryRows().containsKey(factoryDimensions[0] + promotionBump) ) {
 				
 				for (Row row : Grid.getFactoryRows().get(factoryDimensions[0] + promotionBump)) {
-					if (!factoryRowExtendable(row, land, request.rotations()[0])) {	
+					if (!factoryRowExtendable(row, land, request.rotations()[0], promotionBump)) {	
 						continue;
 					} else {
 						if (bestRow == null) {
@@ -113,11 +113,11 @@ public class Player implements pentos.sim.Player {
 			// of the factory
 			if (factoryDimensions[0] != factoryDimensions[1]) {
 				// This makes sure that Dim2 isn't the same as Dim1
-				if (factoryDimensions[1] + promotionBump <= 7 
+				if (factoryDimensions[1] + promotionBump <= 5
 						&& Grid.getFactoryRows().containsKey(factoryDimensions[1] + promotionBump) ) {
 					
 					for (Row row : Grid.getFactoryRows().get(factoryDimensions[1] + promotionBump)) {
-						if (!factoryRowExtendable(row, land, request.rotations()[1])) {
+						if (!factoryRowExtendable(row, land, request.rotations()[1], promotionBump)) {
 							continue;
 						} else {
 							if (bestRow == null) {
@@ -172,7 +172,10 @@ public class Player implements pentos.sim.Player {
 		int yLoc = (bestRow.getRoadLocation() > bestRow.getStart()) ? bestRow.getStart() + promotionBump
 				: bestRow.getStart();
 		// int yLoc = bestRow.getStart();
-		//System.out.println("Building factory at " + bestRow.getCurrentLocation() + ", " + yLoc);
+		System.out.println("Building factory at " + bestRow.getCurrentLocation() + ", " + yLoc);
+		if (!land.buildable(request, new Cell(yLoc, bestRow.getCurrentLocation()))) {
+			System.out.println("Cannot build this factory.");
+		}
 		Cell location = new Cell(yLoc, bestRow.getCurrentLocation());
 		int rotation = (rotate) ? 1 : 0;
 
@@ -469,7 +472,7 @@ public class Player implements pentos.sim.Player {
 		if (!land.buildable(move.request.rotations()[move.rotation], move.location)) {
 			//System.out.println("***Cannot build***" + move.location.i + "," + move.location.j);
 		}
-		//System.out.println("Building residence at " + move.location.i + "," + move.location.j);
+		System.out.println("Building residence at " + move.location.i + "," + move.location.j);
 		// System.out.println("***Can build***");
 		return move;
 	}
@@ -493,12 +496,15 @@ public class Player implements pentos.sim.Player {
 		return new int[] { height, width };
 	}
 
-	public boolean factoryRowExtendable(Row row, Land land, Building factory) {
+	public boolean factoryRowExtendable(Row row, Land land, Building factory, int promotion) {
 		if (factory.getType() != Type.FACTORY) {
 			throw new RuntimeException("Incorrect building type inputted.");
 		}
 
 		int topCell = row.getStart();
+		if (row.getRoadLocation() > row.getStart()) {
+			topCell += promotion;
+		}
 		int leftCell = row.getCurrentLocation();
 
 		if (row.getRoadLocation() != -1 
@@ -530,9 +536,37 @@ public class Player implements pentos.sim.Player {
 			if (land.buildable(residence, new Cell(row.getStart() + offSet, position))) {
 				if (roadRow >= 0 && roadRow <= 49) {
 					// Checking if roads haven't been blocked
-					int from = position, to = row.getCurrentLocation();
+					int to = row.getCurrentLocation();
 					if (to + 1 < land.side) {
 						to += 1;
+					}
+					
+					Iterator<Cell> it = residence.iterator();
+					int from;
+					if (roadRow > row.getStart()) {
+						// Road is at the bottom
+						int maxRow = 0;
+						int maxCol = 0;
+						while (it.hasNext()) {
+							Cell c = it.next();
+							if (c.i > maxRow) {
+								maxRow = c.i;
+								maxCol = 0;
+							} else if (c.i == maxRow && c.j > maxCol) {
+								maxCol = c.j;
+							}
+						}
+						from = position + maxCol;
+					} else {
+						// Road is on top
+						int maxCol = 0;
+						while (it.hasNext()) {
+							Cell c = it.next();
+							if (c.i == 0 && c.j > maxCol) {
+								maxCol = c.j;
+							}
+						}
+						from = position + maxCol;
 					}
 					
 					for (int j = from; j <= to; ++j) {
