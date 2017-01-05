@@ -1,5 +1,11 @@
-Author:  Kevin Shi, Orestis Polychroniou
-Email:   kshi@cs.columbia.edu, orestis@cs.columbia.edu
+This repository contains the project called Pentocity for the course COMS 4444 -- Programming and Problem Solving.
+
+Known members of this fabulous team are (in no particular order):
+
+Xi Zhang (zhang.xi@columbia.edu)
+Rajan Bhargava (r.bhargava@columbia.edu)
+David Rincon-Cruz (dr2884@columbia.edu)
+
 
 
 Player
